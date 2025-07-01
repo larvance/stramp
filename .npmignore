@@ -1,9 +1,11 @@
 .idea
+.vscode
 tests
 .npmignore
+.gitignore
 node_modules
 package-lock.json
 tsconfig.json
 rollup.config.mjs
-dist/index.js
-dist/ts
+dist
+src

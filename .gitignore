@@ -1,0 +1,8 @@
+.idea
+.vscode
+tests
+node_modules
+dist/
+package-lock.json
+index.d.ts
+index.min.js

@@ -3,7 +3,7 @@ import {BufferIndex} from "../BufferIndex";
 import Stramp from "../Stramp";
 import {DefaultLengthBin} from "../Utils";
 
-class MapBinConstructor<
+export class MapBinConstructor<
     KType extends Bin,
     VType extends Bin,
     T extends Map<KType["__TYPE__"], VType["__TYPE__"]> = Map<KType["__TYPE__"], VType["__TYPE__"]>

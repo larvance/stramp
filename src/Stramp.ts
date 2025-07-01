@@ -38,14 +38,14 @@ import ArrayBin, {
     UInt8ArrayBin,
     UInt8ClampedArrayBin
 } from "./array/ArrayBin";
-import AnyBin from "./any/AnyBin";
+import AnyBin, {AnyBinConstructor} from "./any/AnyBin";
 import {Bin, getBinByInternalId} from "./Bin";
 import NegBigIntBin from "./number/NegBigIntBin";
 import DateBin from "./object/DateBin";
 import ObjectBin from "./object/ObjectBin";
 import {String16Bin, String32Bin, String8Bin} from "./string/LengthBasedStringBin";
 import CStringBin from "./string/CStringBin";
-import MapBin from "./object/MapBin";
+import MapBin, {MapBinConstructor} from "./object/MapBin";
 import ClassInstanceBin from "./object/ClassInstanceBin";
 import IgnoreBin from "./misc/IgnoreBin";
 import RegExpBin from "./object/RegExpBin";
@@ -54,6 +54,7 @@ import BigIntBaseBin from "./number/base/BigIntBaseBin";
 import ObjectStructBin from "./object/ObjectStructBin";
 import NumberBin from "./number/NumberBin";
 import ConstantBin, {ConstantBinConstructor} from "./misc/ConstantBin";
+import {AnyValueBinConstructor} from "./any/AnyValueBin";
 
 class Stramp extends Bin {
     name = "any";
@@ -112,7 +113,7 @@ class Stramp extends Bin {
     f64array = Float64ArrayBin;
 
     object = ObjectBin;
-    map = MapBin;
+    map = MapBin as MapBinConstructor<Bin, Bin, Map<Bin["__TYPE__"], Bin["__TYPE__"]>>;
     class = ClassInstanceBin;
 
     date = DateBin;
@@ -167,7 +168,11 @@ class Stramp extends Bin {
         const FLOAT32_SMALLEST_POSITIVE = 1.4e-45;
 
         if ((value >= FLOAT32_SMALLEST_POSITIVE || value === 0) && value <= FLOAT32_MAX && value >= FLOAT32_MIN) {
-            return Float32Bin;
+            const f32 = new Float32Array(1); // if you ever want to allow float32 by default move this outside for performance
+            f32[0] = value;
+            if (Math.abs(value - f32[0]) < 1e-15) {
+                return Float32Bin;
+            }
         }*/
 
         return Float64Bin;
@@ -274,5 +279,8 @@ export {
     BufferIndex,
     IntBaseBin,
     BigIntBaseBin,
-    ObjectStructBin
+    ObjectStructBin,
+    AnyBinConstructor,
+    AnyValueBinConstructor,
+    ConstantBinConstructor
 }
