@@ -2,7 +2,7 @@ import {Bin, getBinByInternalId} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import Stramp from "../Stramp";
 
-export default new class NumberBin extends Bin<number> {
+class NumberBin extends Bin<number> {
     name = "number";
     sample = 0;
     #minValue = -Infinity;
@@ -40,3 +40,5 @@ export default new class NumberBin extends Bin<number> {
         return o;
     };
 }
+
+export default new NumberBin();

@@ -29,7 +29,7 @@ export class ConstantBinConstructor<T> extends Bin<Readonly<T>> {
     };
 
     new<K>(value: Readonly<K>, name = JSON.stringify(value)): ConstantBinConstructor<K> {
-        return new ConstantBinConstructor(value, name);
+        return new ConstantBinConstructor<K>(value, name);
     };
 
     adapt() {
@@ -44,4 +44,4 @@ export class ConstantBinConstructor<T> extends Bin<Readonly<T>> {
     };
 }
 
-export default new ConstantBinConstructor("constant");
+export default new ConstantBinConstructor<string>("constant");

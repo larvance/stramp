@@ -1,7 +1,7 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-export default new class IgnoreBin extends Bin<void> {
+class IgnoreBin extends Bin<void> {
     name = "Ignore";
     sample = <void>undefined;
 
@@ -22,3 +22,5 @@ export default new class IgnoreBin extends Bin<void> {
     adapt() {
     };
 }
+
+export default new IgnoreBin();

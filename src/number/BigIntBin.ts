@@ -1,9 +1,8 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import UBigIntBin from "./UBigIntBin";
-import {bigint} from "../Stramp";
 
-export default new class BigIntBin extends Bin<bigint> {
+class BigIntBin extends Bin<bigint> {
     name = "bi";
     sample = 0n;
 
@@ -31,3 +30,5 @@ export default new class BigIntBin extends Bin<bigint> {
         return super.adapt(value);
     };
 }
+
+export default new BigIntBin();

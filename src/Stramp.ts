@@ -61,15 +61,15 @@ class Stramp extends Bin {
     sample = null;
 
     // -- Specials --
+    null = NullBin;
+    undefined = UndefinedBin;
+    true = TrueBin;
+    false = FalseBin;
     zero = ZeroBin;
     bigZero = BigZeroBin;
     NaN = NaNBin;
     inf = InfinityBin;
     negInf = NegativeInfinityBin;
-    null = NullBin;
-    undefined = UndefinedBin;
-    true = TrueBin;
-    false = FalseBin;
     // -- Specials --
 
     u8 = UInt8Bin;
@@ -92,6 +92,12 @@ class Stramp extends Bin {
     string8 = String8Bin;
     string16 = String16Bin;
     string32 = String32Bin;
+    s8 = String8Bin;
+    s16 = String16Bin;
+    s32 = String32Bin;
+    str8 = String8Bin;
+    str16 = String16Bin;
+    str32 = String32Bin;
     cstring = CStringBin;
 
     bool = BooleanBin;
@@ -121,7 +127,7 @@ class Stramp extends Bin {
 
     any = AnyBin;
     ignore = IgnoreBin;
-    constant = new ConstantBinConstructor("Stramp!");
+    constant = new ConstantBinConstructor<string>("Stramp!");
 
     unsafeWrite(bind: BufferIndex, value: any): void {
         const type = this.getTypeOf(value)!;
@@ -244,6 +250,7 @@ export default stramp;
 
 Bin.AnyBin = AnyBin;
 
+// noinspection ReservedWordAsName
 export {
     UInt8Bin as u8,
     UInt16Bin as u16,
@@ -258,22 +265,46 @@ export {
     UBigIntBin as ubigint,
     BigIntBin as bigint,
     String8Bin as s8,
+    String8Bin as str8,
+    String8Bin as string8,
     String16Bin as s16,
+    String16Bin as str16,
+    String16Bin as string16,
     String32Bin as s32,
+    String32Bin as str32,
+    String32Bin as string32,
+    CStringBin as cstring,
+    BooleanBin as bool,
+    ArrayBin as array,
+    SetBin as set,
+    BufferBin as buffer,
+    UInt8ArrayBin as u8array,
+    UInt16ArrayBin as u16array,
+    UInt32ArrayBin as u32array,
+    UInt64ArrayBin as u64array,
+    Int8ArrayBin as i8array,
+    Int16ArrayBin as i16array,
+    Int32ArrayBin as i32array,
+    Int64ArrayBin as i64array,
+    Float32ArrayBin as f32array,
+    Float64ArrayBin as f64array,
+    ObjectBin as object,
+    MapBin as map,
+    ClassInstanceBin as class,
+    DateBin as date,
+    RegExpBin as regexp,
+    AnyBin as any,
+    IgnoreBin as ignore,
+    ConstantBin as constant,
+    NullBin as null,
+    UndefinedBin as undefined,
+    TrueBin as true,
+    FalseBin as false,
     ZeroBin as zero,
     BigZeroBin as bigZero,
     NaNBin as NaN,
-    NullBin as null_,
-    UndefinedBin as undefined,
     InfinityBin as inf,
     NegativeInfinityBin as negInf,
-    TrueBin as true_,
-    FalseBin as false_,
-    BooleanBin as bool,
-    CStringBin as string,
-    ArrayBin as array,
-    ConstantBin as constant,
-    stramp as any,
 
     Bin,
     BufferIndex,

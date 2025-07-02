@@ -1,3 +1,3 @@
 import {ConstantBinConstructor} from "../misc/ConstantBin";
 
-export default new ConstantBinConstructor(5);
+export default new ConstantBinConstructor<false>(false);

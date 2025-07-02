@@ -2,7 +2,7 @@ import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import {Buffer} from "buffer";
 
-export default new class UBigIntBin extends Bin<bigint> {
+class UBigIntBin extends Bin<bigint> {
     name = "ubi";
     sample = 0n;
 
@@ -40,3 +40,5 @@ export default new class UBigIntBin extends Bin<bigint> {
         return super.adapt(value < 0n ? -value : value);
     };
 }
+
+export default new UBigIntBin();

@@ -1,8 +1,8 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
-import Stramp, {string} from "../Stramp";
+import Stramp from "../Stramp";
 
-export default new class RegExpBin extends Bin<RegExp> {
+class RegExpBin extends Bin<RegExp> {
     name = "date";
     sample = / /;
 
@@ -33,3 +33,5 @@ export default new class RegExpBin extends Bin<RegExp> {
         return super.adapt(value);
     };
 }
+
+export default new RegExpBin();

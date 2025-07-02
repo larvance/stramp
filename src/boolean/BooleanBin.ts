@@ -1,7 +1,7 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-export default new class BooleanBin extends Bin<boolean> {
+class BooleanBin extends Bin<boolean> {
     name = "bool";
     sample = false;
 
@@ -25,3 +25,5 @@ export default new class BooleanBin extends Bin<boolean> {
         return Boolean(value);
     };
 }
+
+export default new BooleanBin();

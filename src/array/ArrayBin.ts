@@ -110,6 +110,8 @@ export class ArrayBinConstructor<
         const type = this.type || Stramp;
         const arr = Array.from(value);
 
+        if (this.fixedSize !== null && this.fixedSize !== arr.length) return this.makeProblem(`Expected an iterable of length ${this.fixedSize}, got ${arr.length}`);
+
         for (let i = 0; i < arr.length; i++) {
             const problem = type.findProblem(arr[i], strict);
             if (problem) return problem.shifted(`[${i}]`, this);

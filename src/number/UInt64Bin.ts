@@ -1,7 +1,7 @@
 import {BufferIndex} from "../BufferIndex";
 import BigIntBaseBin from "./base/BigIntBaseBin";
 
-export default new class UInt64Bin extends BigIntBaseBin {
+class UInt64Bin extends BigIntBaseBin {
     name = "u64";
 
     min = 0n;
@@ -16,3 +16,5 @@ export default new class UInt64Bin extends BigIntBaseBin {
         return bind.readUInt64();
     };
 }
+
+export default new UInt64Bin();

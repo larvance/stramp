@@ -1,6 +1,6 @@
 import {Bin} from "../../Bin";
 
-export default new class NaNBin extends Bin<number> {
+class NaNBin extends Bin<number> {
     name = "NaN";
     sample = NaN;
 
@@ -23,3 +23,5 @@ export default new class NaNBin extends Bin<number> {
         return NaN;
     };
 }
+
+export default new NaNBin();

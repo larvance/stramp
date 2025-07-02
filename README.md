@@ -52,9 +52,9 @@ Stramp comes with the following default types:
 * `f64`
 * `ubigint`
 * `bigint`
-* `string8`
-* `string16`
-* `string32`
+* `string8`: 1 byte for length, max 2^8 - 1 characters (or s8 or str8)
+* `string16`: 2 bytes for length, max 2^16 - 1 characters (or s16 or str16)
+* `string32`: 4 bytes for length, max 2^32 - 1 characters (or s32 or str32)
 * `cstring`: Null terminated string
 * `bool`
 * `array`: Can hold any of these types, check out [ArrayBin](#array-bin)
@@ -78,6 +78,7 @@ Stramp comes with the following default types:
 * `regexp`
 * `any`
 * `ignore`: Writes nothing no matter what, reads undefined
+* `constant`: Default constant `"Stramp!"`. constant.new(yourValue)
 * `null`
 * `undefined`
 * `true`

@@ -1,6 +1,6 @@
 import {Bin} from "../../Bin";
 
-export default new class ZeroBin extends Bin<0> {
+class ZeroBin extends Bin<0> {
     name = "0";
     sample = 0 as const;
 
@@ -23,3 +23,5 @@ export default new class ZeroBin extends Bin<0> {
         return 0 as const;
     };
 }
+
+export default new ZeroBin();

@@ -1,7 +1,7 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-export default new class Float64Bin extends Bin<number> {
+class Float64Bin extends Bin<number> {
     name = "f64";
     sample = 0;
 
@@ -21,3 +21,5 @@ export default new class Float64Bin extends Bin<number> {
         if (typeof value !== "number") return this.makeProblem("Expected a number");
     };
 }
+
+export default new Float64Bin();

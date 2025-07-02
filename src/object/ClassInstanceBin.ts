@@ -6,7 +6,7 @@ import UInt8Bin from "../number/UInt8Bin";
 
 type EmptyClassType = { new(): any };
 
-export default new class ClassInstanceBin<K extends EmptyClassType[]> extends Bin<InstanceType<K[number]>> {
+class ClassInstanceBin<K extends EmptyClassType[]> extends Bin<InstanceType<K[number]>> {
     name = "date";
     classes: EmptyClassType[] = [];
     numBin: Bin<number> = UInt8Bin;
@@ -51,3 +51,5 @@ export default new class ClassInstanceBin<K extends EmptyClassType[]> extends Bi
         throw new Error("Cannot make a sample for a ClassInstanceBin, this was most likely caused by instantiating a new struct that includes a ClassInstanceBin.");
     };
 }
+
+export default new ClassInstanceBin();

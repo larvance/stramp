@@ -2,7 +2,7 @@ import {BufferIndex} from "../BufferIndex";
 import {Buffer} from "buffer";
 import {StringBin} from "./StringBin";
 
-export default new class CStringBin extends StringBin {
+class CStringBin extends StringBin {
     name = "string";
     sample = "";
     lengthBytes = 0;
@@ -42,3 +42,5 @@ export default new class CStringBin extends StringBin {
         return super.adapt(value.replaceAll("\0", ""));
     };
 }
+
+export default new CStringBin();

@@ -10,7 +10,7 @@
     "noEmitOnError": true,
     "outDir": "dist/ts",
     "declaration": true,
-    "declarationDir": "dist/ts"
+    "declarationDir": "types"
   },
   "include": [
     "src/**/*.ts"

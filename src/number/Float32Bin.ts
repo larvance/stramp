@@ -1,7 +1,7 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-export default new class Float32Bin extends Bin<number> {
+class Float32Bin extends Bin<number> {
     name = "f32";
     sample = 0;
 
@@ -25,3 +25,5 @@ export default new class Float32Bin extends Bin<number> {
         }
     };
 }
+
+export default new Float32Bin();

@@ -1,7 +1,7 @@
 import {BufferIndex} from "../BufferIndex";
 import IntBaseBin from "./base/IntBaseBin";
 
-export default new class Int16Bin extends IntBaseBin {
+class Int16Bin extends IntBaseBin {
     name = "i16";
 
     min = -32768;
@@ -17,3 +17,5 @@ export default new class Int16Bin extends IntBaseBin {
         return bind.readInt16();
     };
 }
+
+export default new Int16Bin();

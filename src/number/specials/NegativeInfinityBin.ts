@@ -1,6 +1,6 @@
 import {Bin} from "../../Bin";
 
-export default new class NegativeInfinityBin extends Bin<number> {
+class NegativeInfinityBin extends Bin<number> {
     name = "-inf";
     sample = -Infinity;
 
@@ -23,3 +23,5 @@ export default new class NegativeInfinityBin extends Bin<number> {
         return -Infinity;
     };
 }
+
+export default new NegativeInfinityBin();

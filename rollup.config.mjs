@@ -2,7 +2,6 @@ import commonjs from "@rollup/plugin-commonjs";
 import terser from "@rollup/plugin-terser";
 import nodeResolve from "@rollup/plugin-node-resolve";
 import {defineConfig} from "rollup";
-import dts from "rollup-plugin-dts";
 
 export default [
     defineConfig({
@@ -22,13 +21,5 @@ export default [
             nodeResolve({preferBuiltins: false}),
             commonjs()
         ]
-    }),
-    defineConfig({
-        input: "dist/ts/Stramp.d.ts",
-        output: {
-            file: "index.d.ts",
-            format: "es"
-        },
-        plugins: [dts()]
     })
 ];

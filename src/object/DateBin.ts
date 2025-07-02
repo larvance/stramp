@@ -1,7 +1,7 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-export default new class DateBin extends Bin<Date> {
+class DateBin extends Bin<Date> {
     name = "date";
     sample = new Date(0);
 
@@ -32,3 +32,5 @@ export default new class DateBin extends Bin<Date> {
         return super.adapt(value);
     };
 }
+
+export default new DateBin();
