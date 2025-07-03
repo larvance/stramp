@@ -1,7 +1,8 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-class DateBin extends Bin<Date> {
+class DateBinConstructor extends Bin<Date> {
+    isOptional = false as const;
     name = "date";
     sample = new Date(0);
 
@@ -33,4 +34,4 @@ class DateBin extends Bin<Date> {
     };
 }
 
-export default new DateBin();
+export default new DateBinConstructor();

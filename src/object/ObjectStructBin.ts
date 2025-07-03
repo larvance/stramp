@@ -2,35 +2,39 @@ import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import Stramp from "../Stramp";
 
-type so<SD extends Record<string, Bin>> = { [k in keyof SD]: SD[k]["__TYPE__"] };
+type so<SD extends Record<string, Bin>> = {
+    [K in keyof SD as SD[K]["isOptional"] extends true ? never : K]: SD[K]["__TYPE__"];
+} & {
+    [K in keyof SD as SD[K]["isOptional"] extends true ? K : never]?: SD[K]["__TYPE__"];
+};
 type ExcludeKeys<Obj, Keys extends string[]> = {
     [K in keyof Obj as K extends Keys[number] ? never : K]: Obj[K];
 };
 
 export default class ObjectStructBinConstructor<
     StructData extends { [k: string | number]: Bin } = { [k: string | number]: Bin },
-    StructObject extends so<StructData> = so<StructData>,
-    T = StructObject
+    T = so<StructData>
 > extends Bin<T> {
+    isOptional = false as const;
     name = "";
 
     constructor(
         public structData: StructData, // not readonly because some people might want to use it recursively.
-        public readonly classConstructor: ((obj: StructObject) => T),
+        public readonly classConstructor: ((obj: so<StructData>) => T),
         public readonly baseName: string | null
     ) {
         super();
     };
 
     init() {
-        const objName = `{ ${Object.keys(this.structData).map(i => `${i}: ${this.structData[i].name}`).join(", ")} }`;
+        const objName = `{ ${Object.keys(this.structData).map(i => `${i}${this.structData[i].isOptional ? "?" : ""}: ${this.structData[i].name}`).join(", ")} }`;
         this.name = this.baseName ?? objName;
         const newStructData = <any>{};
         const keys = Object.keys(this.structData).sort();
 
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let v = this.structData[key];
+            let v = <any>this.structData[key];
             if (!(v instanceof Bin)) v = Stramp.getStrictTypeOf(v);
             newStructData[key] = v;
         }
@@ -89,7 +93,9 @@ export default class ObjectStructBinConstructor<
             const key = keys[i];
             const type = structData[key];
             const problem = type.findProblem(value[key], strict);
-            if (problem) return problem.shifted(`[${JSON.stringify(key)}]`, this);
+            if (problem) {
+                return problem.shifted(`[${JSON.stringify(key)}]`, this);
+            }
         }
     };
 
@@ -110,12 +116,12 @@ export default class ObjectStructBinConstructor<
     adapt(value: any): T {
         if (value === null || typeof value !== "object") value = {};
 
-        const obj = <StructObject>{};
+        const obj = <so<StructData>>{};
         const keys = Object.keys(value);
 
         for (const key of this.keys()) {
             const type = this.structData[key];
-            obj[key] = keys.includes(<string>key) ? type.adapt(value[key]) : type.sample;
+            obj[<keyof so<StructData>>key] = keys.includes(<string>key) ? type.adapt(value[key]) : type.sample;
         }
 
         return super.adapt(this.classConstructor(obj));
@@ -125,8 +131,8 @@ export default class ObjectStructBinConstructor<
         return <(keyof StructData)[]>Object.keys(this.structData);
     };
 
-    withConstructor<N>(classConstructor: ((obj: StructObject) => N)) {
-        const o = <ObjectStructBinConstructor<StructData, StructObject, N>>new ObjectStructBinConstructor(
+    withConstructor<N>(classConstructor: ((obj: so<StructData>) => N)) {
+        const o = <ObjectStructBinConstructor<StructData, N>>new ObjectStructBinConstructor(
             this.structData,
             classConstructor,
             this.baseName

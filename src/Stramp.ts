@@ -39,7 +39,7 @@ import ArrayBin, {
     UInt8ClampedArrayBin
 } from "./array/ArrayBin";
 import AnyBin, {AnyBinConstructor} from "./any/AnyBin";
-import {Bin, getBinByInternalId} from "./Bin";
+import {__def, Bin, getBinByInternalId} from "./Bin";
 import NegBigIntBin from "./number/NegBigIntBin";
 import DateBin from "./object/DateBin";
 import ObjectBin from "./object/ObjectBin";
@@ -55,8 +55,10 @@ import ObjectStructBin from "./object/ObjectStructBin";
 import NumberBin from "./number/NumberBin";
 import ConstantBin, {ConstantBinConstructor} from "./misc/ConstantBin";
 import {AnyValueBinConstructor} from "./any/AnyValueBin";
+import {DefaultsToBin} from "./misc/DefaultsToBin";
 
 class Stramp extends Bin {
+    isOptional = false as const;
     name = "any";
     sample = null;
 
@@ -127,7 +129,7 @@ class Stramp extends Bin {
 
     any = AnyBin;
     ignore = IgnoreBin;
-    constant = new ConstantBinConstructor<string>("Stramp!");
+    constant = ConstantBin;
 
     unsafeWrite(bind: BufferIndex, value: any): void {
         const type = this.getTypeOf(value)!;
@@ -151,11 +153,11 @@ class Stramp extends Bin {
         if (!type) return this.makeProblem("Unknown type");
     };
 
-    getNumberTypeOf(value: number) {
+    getNumberTypeOf(value: number): Bin<number> {
         if (isNaN(value)) return NaNBin;
         if (value === Infinity) return InfinityBin;
         if (value === -Infinity) return NegativeInfinityBin;
-        if (value === 0) return ZeroBin;
+        if (value === 0) return <Bin<number>>ZeroBin;
         if (value % 1 === 0) {
             if (value >= 0) {
                 if (value <= 127) return UInt8Bin;
@@ -248,7 +250,10 @@ const stramp = new Stramp;
 
 export default stramp;
 
-Bin.AnyBin = AnyBin;
+__def.AnyBin = AnyBinConstructor;
+__def.UndefinedBin = <any>UndefinedBin;
+__def.NullBin = <any>NullBin;
+__def.DefaultsToBin = DefaultsToBin;
 
 // noinspection ReservedWordAsName
 export {
@@ -315,3 +320,5 @@ export {
     AnyValueBinConstructor,
     ConstantBinConstructor
 }
+
+export type infer<T extends Bin> = T["__TYPE__"];

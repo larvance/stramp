@@ -1,7 +1,7 @@
 import {BufferIndex} from "../BufferIndex";
 import IntBaseBin from "./base/IntBaseBin";
 
-class UInt8Bin extends IntBaseBin {
+class UInt8BinConstructor extends IntBaseBin {
     name = "u8";
 
     min = 0;
@@ -18,4 +18,4 @@ class UInt8Bin extends IntBaseBin {
     };
 }
 
-export default new UInt8Bin();
+export default new UInt8BinConstructor();

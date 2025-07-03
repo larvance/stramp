@@ -11,6 +11,7 @@ class ObjectBinConstructor<
     VObject extends Record<string | number, VType["__TYPE__"]> = Record<string | number, VType["__TYPE__"]>,
     T = VObject
 > extends Bin<T> {
+    isOptional = false as const;
     name: string;
     lengthBinSize: number;
 
@@ -124,7 +125,7 @@ class ObjectBinConstructor<
     };
 
     valueTyped<N extends Bin>(valueType: N) {
-        const o = <ObjectBinConstructor<N>>new ObjectBinConstructor(
+        const o = <ObjectBinConstructor<N>><unknown>new ObjectBinConstructor(
             this.keyType,
             valueType,
             this.classConstructor,

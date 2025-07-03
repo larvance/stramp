@@ -1,7 +1,8 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-class Float64Bin extends Bin<number> {
+class Float64BinConstructor extends Bin<number> {
+    isOptional = false as const;
     name = "f64";
     sample = 0;
 
@@ -22,4 +23,4 @@ class Float64Bin extends Bin<number> {
     };
 }
 
-export default new Float64Bin();
+export default new Float64BinConstructor();

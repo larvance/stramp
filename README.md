@@ -78,7 +78,7 @@ Stramp comes with the following default types:
 * `regexp`
 * `any`
 * `ignore`: Writes nothing no matter what, reads undefined
-* `constant`: Default constant `"Stramp!"`. constant.new(yourValue)
+* `constant`: Default constant `"Stramp!"`. `constant.new(yourValue)`
 * `null`
 * `undefined`
 * `true`
@@ -120,6 +120,25 @@ console.log(buffer); // <Buffer 2c 0c 04 6e 61 6d 65 29 08 4a 6f 68 6e 20 44 ...
 const restoredObj = X.deserialize(buffer);
 
 console.log(restoredObj); // Will have the same values as obj
+```
+
+## Universal Bin Operations
+
+You can use the following operations on any Bin:
+
+```js
+const A = X.u8; // or any other Bin
+const B = X.string8; // or any other Bin
+
+const AorB = X.any.of(A, B); // Creates a Bin that can hold either u8 or string8
+AorB.serialize("hello!");
+AorB.serialize(10);
+
+const defaultedU8 = A.default(0); // Creates a Bin that defaults to 0 if the value is undefined
+const usefulObject = X.object.struct({
+    myNumber: X.u8.default(0)
+});
+const buf = usefulObject.serialize({}); // This works!
 ```
 
 ## Array Bin
@@ -321,6 +340,20 @@ console.log(buffer); // <Buffer 68 b3 ea 73 85 ca b8 40 c9 e5 3f a4 1f 03 b4 40>
 const restoredVector = VectorType.deserialize(buffer);
 
 console.log(restoredVector); // Vector { x: 6346.5213, y: 5123.1236 }
+```
+
+## TypeScript support
+
+Every Bin is perfectly typed, so you can use them in TypeScript without any issues.
+
+To get the type a Bin is holding, you can use `infer`.
+
+```ts
+import * as X from "stramp";
+
+const myBin = X.u8;
+
+type MyType = X.infer<typeof myBin>; // MyType will be 'number'
 ```
 
 ## The limitations

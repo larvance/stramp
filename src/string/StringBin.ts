@@ -13,6 +13,7 @@ import {
 } from "../Utils";
 
 export abstract class StringBin extends Bin<string> {
+    isOptional = false as const;
     #regexValue: RegExp | null = null;
     #lenMin = 0;
     #lenMax = Infinity;

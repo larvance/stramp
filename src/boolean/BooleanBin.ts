@@ -1,9 +1,10 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-class BooleanBin extends Bin<boolean> {
+class BooleanBinConstructor extends Bin<boolean> {
     name = "bool";
     sample = false;
+    isOptional = false as const;
 
     unsafeWrite(bind: BufferIndex, value: boolean) {
         bind.push(+value);
@@ -26,4 +27,4 @@ class BooleanBin extends Bin<boolean> {
     };
 }
 
-export default new BooleanBin();
+export default new BooleanBinConstructor();

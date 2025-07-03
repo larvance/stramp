@@ -9,6 +9,7 @@ export class ArrayStructBinConstructor<
     T extends Iterable<K> = ClassType extends "array" ? K[] : (ClassType extends "set" ? Set<K> : ClassType)
 > extends Bin<T> {
     public name: string;
+    isOptional = false as const;
 
     constructor(
         public readonly typesName: (types: Bin[]) => string,

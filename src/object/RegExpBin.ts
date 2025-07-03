@@ -2,8 +2,9 @@ import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import Stramp from "../Stramp";
 
-class RegExpBin extends Bin<RegExp> {
-    name = "date";
+class RegExpBinConstructor extends Bin<RegExp> {
+    isOptional = false as const;
+    name = "regex";
     sample = / /;
 
     unsafeWrite(bind: BufferIndex, value: RegExp): void {
@@ -34,4 +35,4 @@ class RegExpBin extends Bin<RegExp> {
     };
 }
 
-export default new RegExpBin();
+export default new RegExpBinConstructor();

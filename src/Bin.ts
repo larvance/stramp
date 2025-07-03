@@ -1,11 +1,10 @@
 import {BufferIndex} from "./BufferIndex";
 import {AnyBinConstructor} from "./any/AnyBin";
 import {StrampProblem} from "./StrampProblem";
+import {DefaultsToBin} from "./misc/DefaultsToBin";
+import UndefinedBin from "./constant/UndefinedBin";
+import NullBin from "./constant/NullBin";
 
-type HolderBuffer<Data = any, Owner extends Bin = Bin> = Buffer & {
-    __buffer__data__: Data,
-    __buffer__owner__: Owner
-};
 let _id = 1;
 const bins: Record<number, Bin> = {};
 
@@ -13,12 +12,19 @@ export function getBinByInternalId(id: number): Bin | null {
     return bins[id] ?? null;
 }
 
+export const __def = <{
+    AnyBin: typeof AnyBinConstructor,
+    DefaultsToBin: typeof DefaultsToBin,
+    UndefinedBin: typeof UndefinedBin,
+    NullBin: typeof NullBin
+}>{};
+
 export abstract class Bin<T = any> {
-    static AnyBin: AnyBinConstructor<any>;
     internalId = _id++;
-    __TYPE__ = <T>null;
+    __TYPE__: T;
 
     abstract name: string;
+    abstract isOptional: boolean;
 
     abstract unsafeWrite(bind: BufferIndex, value: T | Readonly<T>): void;
     abstract read(bind: BufferIndex): T;
@@ -59,7 +65,7 @@ export abstract class Bin<T = any> {
         if (err) err.throw();
     };
 
-    serialize<K extends T>(value: K | Readonly<K>) {
+    serialize<K extends T>(value: K) {
         this.assert(value);
 
         // Since we just asserted, everything can be unsafe from here on out.
@@ -69,18 +75,18 @@ export abstract class Bin<T = any> {
 
         this.unsafeWrite(bind, value);
 
-        return <HolderBuffer<K, this>>bind.buffer;
+        return bind.buffer;
     };
 
-    deserialize<Binder extends Buffer | HolderBuffer | BufferIndex>(
+    deserialize<Binder extends Buffer | BufferIndex>(
         bind: Binder
-    ): Binder extends HolderBuffer ? (Binder["__buffer__owner__"] extends this ? Binder["__buffer__data__"] : T) : T {
+    ): T {
         if (bind instanceof BufferIndex) return <any>this.read(bind);
         else return <any>this.read(new BufferIndex(bind, 0));
     };
 
-    or<T extends Bin[]>(...type: T): AnyBinConstructor<[this, ...T]> {
-        return Bin.AnyBin.of(this, ...type);
+    default(default_: any): DefaultsToBin<T> {
+        return new __def.DefaultsToBin(this, default_);
     };
 
     makeProblem(problem: string, source = "") {

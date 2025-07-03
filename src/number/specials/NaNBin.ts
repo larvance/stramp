@@ -1,27 +1,3 @@
-import {Bin} from "../../Bin";
+import {ConstantBinConstructor} from "../../misc/ConstantBin";
 
-class NaNBin extends Bin<number> {
-    name = "NaN";
-    sample = NaN;
-
-    unsafeWrite() {
-    };
-
-    read() {
-        return NaN;
-    };
-
-    unsafeSize() {
-        return 0;
-    };
-
-    findProblem(value: any, strict = false) {
-        if (strict && (typeof value !== "number" || !isNaN(value))) return this.makeProblem("Expected NaN");
-    };
-
-    adapt() {
-        return NaN;
-    };
-}
-
-export default new NaNBin();
+export default new ConstantBinConstructor<number>(NaN);

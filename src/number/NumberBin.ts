@@ -2,7 +2,8 @@ import {Bin, getBinByInternalId} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import Stramp from "../Stramp";
 
-class NumberBin extends Bin<number> {
+class NumberBinConstructor extends Bin<number> {
+    isOptional = false as const;
     name = "number";
     sample = 0;
     #minValue = -Infinity;
@@ -10,6 +11,7 @@ class NumberBin extends Bin<number> {
 
     unsafeWrite(bind: BufferIndex, value: number) {
         const type = Stramp.getNumberTypeOf(value);
+        bind.push(type.internalId);
         type.unsafeWrite(bind, value);
     };
 
@@ -19,7 +21,7 @@ class NumberBin extends Bin<number> {
     };
 
     unsafeSize(value: number) {
-        return Stramp.getNumberTypeOf(value).unsafeSize();
+        return Stramp.getNumberTypeOf(value).unsafeSize(0) + 1;
     };
 
     findProblem(value: any) {
@@ -41,4 +43,4 @@ class NumberBin extends Bin<number> {
     };
 }
 
-export default new NumberBin();
+export default new NumberBinConstructor();

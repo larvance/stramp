@@ -1,6 +1,7 @@
 import {Bin} from "../../Bin";
 
 export default abstract class BigIntBaseBin extends Bin<bigint | number> {
+    isOptional = false as const;
     sample = 0n;
 
     abstract min: bigint;

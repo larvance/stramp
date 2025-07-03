@@ -1,7 +1,7 @@
 import {BufferIndex} from "../BufferIndex";
 import IntBaseBin from "./base/IntBaseBin";
 
-class Int16Bin extends IntBaseBin {
+class Int16BinConstructor extends IntBaseBin {
     name = "i16";
 
     min = -32768;
@@ -18,4 +18,4 @@ class Int16Bin extends IntBaseBin {
     };
 }
 
-export default new Int16Bin();
+export default new Int16BinConstructor();

@@ -8,6 +8,7 @@ export class MapBinConstructor<
     VType extends Bin,
     T extends Map<KType["__TYPE__"], VType["__TYPE__"]> = Map<KType["__TYPE__"], VType["__TYPE__"]>
 > extends Bin<T> {
+    isOptional = false as const;
     name: string;
     lengthBinSize: number;
 

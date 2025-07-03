@@ -1,8 +1,14 @@
-import X from "../src/Stramp";
+import * as X from "../src/Stramp";
 
-const b = X.object.keyTyped(X.u8).valueTyped(X.u8);
+const A = X.u8; // or any other Bin
+const B = X.string8; // or any other Bin
 
-console.log(b.deserialize(b.serialize({
-    1: 10,
-    7: 50
-})));
+const AorB = X.any.of(A, B); // Creates a Bin that can hold either u8 or string8
+AorB.serialize("hello!");
+AorB.serialize(10);
+
+const defaultedU8 = A.default(0); // Creates a Bin that defaults to 0 if the value is undefined
+const usefulObject = X.object.struct({
+    myNumber: defaultedU8
+});
+const buf = usefulObject.serialize({}); // This works!

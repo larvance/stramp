@@ -1,7 +1,7 @@
 import {BufferIndex} from "../BufferIndex";
 import IntBaseBin from "./base/IntBaseBin";
 
-class UInt32Bin extends IntBaseBin {
+class UInt32BinConstructor extends IntBaseBin {
     name = "u32";
 
     min = 0;
@@ -18,4 +18,4 @@ class UInt32Bin extends IntBaseBin {
     };
 }
 
-export default new UInt32Bin();
+export default new UInt32BinConstructor();

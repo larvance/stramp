@@ -31,6 +31,7 @@ export class ArrayBinConstructor<
 > extends Bin<T> {
     name: string;
     lengthBinSize: number;
+    isOptional = false as const;
 
     constructor(
         public readonly typesName: (types: Bin[]) => string,
@@ -47,7 +48,7 @@ export class ArrayBinConstructor<
     }
 
     init() {
-        this.lengthBinSize = this.lengthBin.unsafeSize(1);
+        this.lengthBinSize = this.lengthBin.unsafeSize(0);
 
         if (this.fixedSize) {
             if (this.type) {
@@ -213,7 +214,7 @@ export class ArrayBinConstructor<
     };
 
     classed<CT extends new (...args: any[]) => Iterable<any>>(clazz: CT) {
-        const o = <ArrayBinConstructor<InstanceType<CT>, K>>new ArrayBinConstructor(
+        const o = <ArrayBinConstructor<InstanceType<CT>, K>><unknown>new ArrayBinConstructor(
             this.typesName,
             this.typeName,
             this.fixedName,
@@ -253,7 +254,7 @@ export class ArrayBinConstructor<
             this.baseClass
         );
         if (init) o.init();
-        return <this>o;
+        return <this><unknown>o;
     };
 }
 

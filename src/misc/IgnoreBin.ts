@@ -1,9 +1,10 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-class IgnoreBin extends Bin<void> {
+class IgnoreBinConstructor extends Bin<undefined> {
     name = "Ignore";
-    sample = <void>undefined;
+    sample = <undefined>undefined;
+    isOptional = true as const;
 
     unsafeWrite(_: BufferIndex, __: any) {
     };
@@ -20,7 +21,8 @@ class IgnoreBin extends Bin<void> {
     };
 
     adapt() {
+        return undefined;
     };
 }
 
-export default new IgnoreBin();
+export default new IgnoreBinConstructor();

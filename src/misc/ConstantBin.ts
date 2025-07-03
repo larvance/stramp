@@ -1,22 +1,24 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
-export class ConstantBinConstructor<T> extends Bin<Readonly<T>> {
+export class ConstantBinConstructor<T> extends Bin<T> {
+    isOptional = true as const;
+
     constructor(
-        public sample: Readonly<T>,
-        public name: string = JSON.stringify(sample)
+        public sample: T,
+        public name: string = typeof sample === "bigint" ? sample.toString() : JSON.stringify(sample)
     ) {
         super();
     };
 
-    unsafeWrite(bind: BufferIndex, value: T | Readonly<T>): void {
+    unsafeWrite(bind: BufferIndex, value: T): void {
     };
 
     read(bind: BufferIndex): T {
         return this.sample;
     };
 
-    unsafeSize(value: T | Readonly<T>): number {
+    unsafeSize(value: T): number {
         return 0;
     };
 
@@ -28,7 +30,7 @@ export class ConstantBinConstructor<T> extends Bin<Readonly<T>> {
         }
     };
 
-    new<K>(value: Readonly<K>, name = JSON.stringify(value)): ConstantBinConstructor<K> {
+    new<K>(value: K, name = JSON.stringify(value)): ConstantBinConstructor<K> {
         return new ConstantBinConstructor<K>(value, name);
     };
 
@@ -44,4 +46,4 @@ export class ConstantBinConstructor<T> extends Bin<Readonly<T>> {
     };
 }
 
-export default new ConstantBinConstructor<string>("constant");
+export default new ConstantBinConstructor<"constant">("constant");

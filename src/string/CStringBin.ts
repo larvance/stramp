@@ -2,7 +2,7 @@ import {BufferIndex} from "../BufferIndex";
 import {Buffer} from "buffer";
 import {StringBin} from "./StringBin";
 
-class CStringBin extends StringBin {
+class CStringBinConstructor extends StringBin {
     name = "string";
     sample = "";
     lengthBytes = 0;
@@ -43,4 +43,4 @@ class CStringBin extends StringBin {
     };
 }
 
-export default new CStringBin();
+export default new CStringBinConstructor();

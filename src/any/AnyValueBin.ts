@@ -3,6 +3,7 @@ import Stramp, {BufferIndex} from "../Stramp";
 
 export class AnyValueBinConstructor<T extends any[]> extends Bin<T[number]> {
     name = "any";
+    isOptional = false as const;
 
     constructor(public values: T, public idBin = Stramp.getTypeOf(values.length), public idBinSize = idBin.unsafeSize(0)) {
         super();

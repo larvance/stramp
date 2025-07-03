@@ -2,7 +2,8 @@ import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import UBigIntBin from "./UBigIntBin";
 
-class NegBigIntBin extends Bin<bigint> {
+class NegBigIntBinConstructor extends Bin<bigint> {
+    isOptional = false as const;
     name = "nbi";
     sample = -1n;
 
@@ -32,4 +33,4 @@ class NegBigIntBin extends Bin<bigint> {
     };
 }
 
-export default new NegBigIntBin();
+export default new NegBigIntBinConstructor();

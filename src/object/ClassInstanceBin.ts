@@ -6,7 +6,8 @@ import UInt8Bin from "../number/UInt8Bin";
 
 type EmptyClassType = { new(): any };
 
-class ClassInstanceBin<K extends EmptyClassType[]> extends Bin<InstanceType<K[number]>> {
+class ClassInstanceBinConstructor<K extends EmptyClassType[]> extends Bin<InstanceType<K[number]>> {
+    isOptional = false as const;
     name = "date";
     classes: EmptyClassType[] = [];
     numBin: Bin<number> = UInt8Bin;
@@ -17,7 +18,7 @@ class ClassInstanceBin<K extends EmptyClassType[]> extends Bin<InstanceType<K[nu
         this.classes = this.classes.sort((a, b) => a.name < b.name ? -1 : 1);
         this.numBin = Stramp.getTypeOf(this.classes.length);
         this.numBinSize = this.numBin.unsafeSize(1);
-        return <ClassInstanceBin<[V, ...K]>><any>this;
+        return <ClassInstanceBinConstructor<[V, ...K]>><any>this;
     };
 
     unsafeWrite(bind: BufferIndex, value: any): void {
@@ -52,4 +53,4 @@ class ClassInstanceBin<K extends EmptyClassType[]> extends Bin<InstanceType<K[nu
     };
 }
 
-export default new ClassInstanceBin();
+export default new ClassInstanceBinConstructor();
