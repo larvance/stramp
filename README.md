@@ -248,14 +248,15 @@ console.log(restoredObject); // Will have the same values as myObject
 const myType = X.object.keyTyped(X.string8).valueTyped(X.u8);
 
 const myObject = {
-    name: "John Doe",
-    age: 30,
-    ageBig: 30n
+    a: 10,
+    b: 20,
+    c: 30
 };
 
 const buffer = myType.serialize(myObject);
 
-console.log(buffer); // <Buffer 2c 03 00 00 00 04 00 00 00 6e 61 6d 65 29 08 4a 6f 68 6e 20 44 6f 65 03 00 00 00 61 67 65 0c 1e 06 00 00 00 61 67 65 42 69 67 0c 1e>
+// The first 4 bytes are the size of the object, you can change it like this:  .lengthBytes(X.u8)
+console.log(buffer); // <Buffer 03 00 00 00 01 61 0a 01 62 14 01 63 1e>
 
 const restoredObject = myType.deserialize(buffer);
 
@@ -284,8 +285,8 @@ const buffer = myType.serialize(myObject);
 // 3-7th bytes is the name
 // 8-12th bytes are the numbers array
 console.log(buffer); // <Buffer 1e 08 4a 6f 68 6e 20 44 6f 65 01 02 03 04 05>
-// This drops 50 bytes of JSON down to 15 bytes! Meaning 1000 of this object would gain
-// you 35000 bytes.
+// This drops 50 bytes of JSON down to 15 bytes!
+// Meaning 1000 of this object would gain you THIRTY FIVE THOUSAND BYTES!
 
 const restoredObject = myType.deserialize(buffer);
 
