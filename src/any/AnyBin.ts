@@ -13,7 +13,7 @@ export class AnyBinConstructor<Bins extends Bin[]> extends Bin<Bins[number]["__T
 
     constructor(public readonly bins: Bins) {
         super();
-        this.name = `${bins.map(bin => bin.name).map(i => i.includes(" ") ? `(${i})` : i).join(" | ")}`;
+        this.name = `${bins.map(bin => bin.name).join(" | ")}`;
         if (bins.length > (1 << 16) - 1) this.binIndexBin = UInt32Bin;
         else if (bins.length > 255) this.binIndexBin = UInt16Bin;
         else this.binIndexBin = UInt8Bin;

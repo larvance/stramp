@@ -94,7 +94,7 @@ export default class ObjectStructBinConstructor<
             const type = structData[key];
             const problem = type.findProblem(value[key], strict);
             if (problem) {
-                return problem.shifted(`[${JSON.stringify(key)}]`, this);
+                return problem.shifted(`[keyed:${JSON.stringify(key)}]`, this);
             }
         }
     };

@@ -18,6 +18,6 @@ export class StrampProblem {
     };
 
     toString() {
-        return this.baseBin.name + this.source + (this.baseBin === this.lastBin ? "" : ` -> ${this.lastBin.name}`) + ": " + this.problem;
+        return this.baseBin.name + this.source + (this.baseBin === this.lastBin ? "" : ` <==> ${this.lastBin.name}`) + ": " + this.problem;
     };
 }

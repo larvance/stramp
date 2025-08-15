@@ -72,7 +72,7 @@ export class ArrayStructBinConstructor<
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             const problem = type.findProblem(arr[i], strict);
-            if (problem) return problem.shifted(`[${i}]`, this);
+            if (problem) return problem.shifted(`[indexed:${i}]`, this);
         }
     };
 

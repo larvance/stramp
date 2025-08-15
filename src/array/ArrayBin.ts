@@ -115,7 +115,7 @@ export class ArrayBinConstructor<
 
         for (let i = 0; i < arr.length; i++) {
             const problem = type.findProblem(arr[i], strict);
-            if (problem) return problem.shifted(`[${i}]`, this);
+            if (problem) return problem.shifted(`[indexed:${i}]`, this);
         }
     };
 
@@ -260,9 +260,9 @@ export class ArrayBinConstructor<
 
 export default new ArrayBinConstructor<"array">(
     (types: Bin[]) => `[ ${types.map(t => t.name).join(", ")} ]`,
-    (type: Bin) => `${type.name}[]`,
+    (type: Bin) => `${type.name.includes(" ") ? `(${type.name})` : type.name}[]`,
     (fixed: number) => `any[${fixed}]`,
-    (fixed: number, type: Bin) => `${type.name}[${fixed}]`,
+    (fixed: number, type: Bin) => `${type.name.includes(" ") ? `(${type.name})` : type.name}[${fixed}]`,
     "Array",
     null,
     null,

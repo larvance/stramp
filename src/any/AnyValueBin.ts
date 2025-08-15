@@ -7,6 +7,7 @@ export class AnyValueBinConstructor<T extends any[]> extends Bin<T[number]> {
 
     constructor(public values: T, public idBin = Stramp.getTypeOf(values.length), public idBinSize = idBin.unsafeSize(0)) {
         super();
+        this.name = `${values.join(" | ")}`;
     };
 
     unsafeWrite(bind: BufferIndex, value: T[number]) {

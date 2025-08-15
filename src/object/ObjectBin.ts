@@ -85,11 +85,11 @@ class ObjectBinConstructor<
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const keyProblem = keyType.findProblem(keyType instanceof StringBin ? key : +key, strict);
-            if (keyProblem) return keyProblem.shifted(`[${JSON.stringify(key)}]`, this);
+            if (keyProblem) return keyProblem.shifted(`[keyed:${JSON.stringify(key)}]`, this);
 
             const val = value[key];
             const valueProblem = valueType.findProblem(val, strict);
-            if (valueProblem) return valueProblem.shifted(`[${JSON.stringify(key)}]`, this);
+            if (valueProblem) return valueProblem.shifted(`[keyed:${JSON.stringify(key)}]`, this);
         }
     };
 

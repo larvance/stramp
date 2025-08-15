@@ -75,10 +75,10 @@ export class MapBinConstructor<
 
         for (const [key, value] of Object.entries(map)) {
             const keyError = keyType.findProblem(key, strict);
-            if (keyError) return keyError.shifted(`[${JSON.stringify(key)}]`, this);
+            if (keyError) return keyError.shifted(`[keyed:${JSON.stringify(key)}]`, this);
 
             const valueError = valueType.findProblem(value, strict);
-            if (valueError) return valueError.shifted(`[${JSON.stringify(key)}]`, this);
+            if (valueError) return valueError.shifted(`[keyed:${JSON.stringify(key)}]`, this);
         }
     };
 
