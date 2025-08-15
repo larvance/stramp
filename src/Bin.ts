@@ -4,6 +4,7 @@ import {StrampProblem} from "./StrampProblem";
 import {DefaultsToBin} from "./misc/DefaultsToBin";
 import UndefinedBin from "./constant/UndefinedBin";
 import NullBin from "./constant/NullBin";
+import type Stramp from "./Stramp";
 
 let _id = 1;
 const bins: Record<number, Bin> = {};
@@ -20,6 +21,8 @@ export const __def = <{
 }>{};
 
 export abstract class Bin<T = any> {
+    static any: typeof Stramp;
+
     internalId = _id++;
     __TYPE__: T;
 

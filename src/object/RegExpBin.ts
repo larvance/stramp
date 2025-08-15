@@ -1,6 +1,5 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
-import Stramp from "../Stramp";
 
 class RegExpBinConstructor extends Bin<RegExp> {
     isOptional = false as const;
@@ -8,15 +7,15 @@ class RegExpBinConstructor extends Bin<RegExp> {
     sample = / /;
 
     unsafeWrite(bind: BufferIndex, value: RegExp): void {
-        Stramp.unsafeWrite(bind, value.source);
+        Bin.any.unsafeWrite(bind, value.source);
     };
 
     read(bind: BufferIndex): RegExp {
-        return Stramp.read(bind);
+        return Bin.any.read(bind);
     };
 
     unsafeSize(value: RegExp): number {
-        return Stramp.unsafeSize(value);
+        return Bin.any.unsafeSize(value);
     };
 
     findProblem(value: any, _ = false) {

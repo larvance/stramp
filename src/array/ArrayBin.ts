@@ -1,6 +1,5 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
-import Stramp from "../Stramp";
 import UInt8Bin from "../number/UInt8Bin";
 import UInt16Bin from "../number/UInt16Bin";
 import UInt64Bin from "../number/UInt64Bin";
@@ -12,8 +11,8 @@ import Int64Bin from "../number/Int64Bin";
 import Float32Bin from "../number/Float32Bin";
 import Float64Bin from "../number/Float64Bin";
 import {Buffer} from "buffer";
-import {DefaultLengthBin} from "../Utils";
-import {ArrayStructBinConstructor} from "./ArrayStructBin";
+import {DefaultLengthBin} from "../Defaults";
+import type {ArrayStructBinConstructor} from "./ArrayStructBin";
 
 // type SizedArray<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : SizedArray<T, N, [...R, T]>;
 
@@ -29,6 +28,8 @@ export class ArrayBinConstructor<
     K extends any = any,
     T extends Iterable<K> = ClassType extends "array" ? K[] : (ClassType extends "set" ? Set<K> : ClassType)
 > extends Bin<T> {
+    static Struct: typeof ArrayStructBinConstructor;
+
     name: string;
     lengthBinSize: number;
     isOptional = false as const;
@@ -71,7 +72,7 @@ export class ArrayBinConstructor<
             this.lengthBin.unsafeWrite(bind, length);
         }
 
-        const type = this.type || Stramp;
+        const type = this.type || Bin.any;
         const arr = Array.from(value);
         for (let i = 0; i < arr.length; i++) {
             type.unsafeWrite(bind, arr[i]);
@@ -82,7 +83,7 @@ export class ArrayBinConstructor<
         const length = this.fixedSize ?? this.lengthBin.read(bind);
         const result = new Array(length);
 
-        const type = this.type || Stramp;
+        const type = this.type || Bin.any;
         for (let i = 0; i < length; i++) {
             result[i] = type.read(bind);
         }
@@ -92,7 +93,7 @@ export class ArrayBinConstructor<
 
     unsafeSize(value: T): number {
         let size = this.fixedSize ? 0 : this.lengthBinSize;
-        const type = this.type || Stramp;
+        const type = this.type || Bin.any;
         const arr = Array.from(value);
         const length = arr.length;
 
@@ -108,7 +109,7 @@ export class ArrayBinConstructor<
 
         if (strict && value.constructor !== this.baseClass) return this.makeProblem(`Expected an iterable of ${this.baseName}`);
 
-        const type = this.type || Stramp;
+        const type = this.type || Bin.any;
         const arr = Array.from(value);
 
         if (this.fixedSize !== null && this.fixedSize !== arr.length) return this.makeProblem(`Expected an iterable of length ${this.fixedSize}, got ${arr.length}`);
@@ -122,7 +123,7 @@ export class ArrayBinConstructor<
     get sample(): T {
         if (!this.fixedSize) return new this.baseClass();
 
-        const type = this.type || Stramp;
+        const type = this.type || Bin.any;
         const result = new Array(this.fixedSize);
 
         for (let i = 0; i < this.fixedSize; i++) {
@@ -230,7 +231,7 @@ export class ArrayBinConstructor<
     };
 
     struct<N extends any[]>(types: Bin<N[number]>[]) {
-        return new ArrayStructBinConstructor<ClassType, N[number]>(
+        return new ArrayBinConstructor.Struct<ClassType, N[number]>(
             this.typesName,
             this.typeName,
             this.fixedName,
@@ -292,7 +293,7 @@ export function makeTypedArrayBin<ArrayType extends Iterable<any>, T extends Bin
     );
 }
 
-export const SetBin = new ArrayBinConstructor<"set">(
+export const SET = new ArrayBinConstructor<"set">(
     (types: Bin[]) => `Set<${types.map(t => t.name).join(", ")}>`,
     (type: Bin) => `Set<type=${type.name}>`,
     (fixed: number) => `Set<length=${fixed}>`,
@@ -304,17 +305,17 @@ export const SetBin = new ArrayBinConstructor<"set">(
     Set
 ).copy();
 
-export const BufferBin: ArrayBinConstructor<Buffer> = makeTypedArrayBin(<any>function (x: number[]) {
+export const BUFFER: ArrayBinConstructor<Buffer> = makeTypedArrayBin(<any>function (x: number[]) {
     return Buffer.from(x);
 }, UInt8Bin);
-export const UInt8ArrayBin = makeTypedArrayBin(Uint8Array, UInt8Bin);
-export const UInt8ClampedArrayBin = makeTypedArrayBin(Uint8ClampedArray, UInt8Bin);
-export const UInt16ArrayBin = makeTypedArrayBin(Uint16Array, UInt16Bin);
-export const UInt32ArrayBin = makeTypedArrayBin(Uint32Array, UInt32Bin);
-export const UInt64ArrayBin = makeTypedArrayBin(BigUint64Array, UInt64Bin);
-export const Int8ArrayBin = makeTypedArrayBin(Int8Array, Int8Bin);
-export const Int16ArrayBin = makeTypedArrayBin(Int16Array, Int16Bin);
-export const Int32ArrayBin = makeTypedArrayBin(Int32Array, Int32Bin);
-export const Int64ArrayBin = makeTypedArrayBin(BigInt64Array, Int64Bin);
-export const Float32ArrayBin = makeTypedArrayBin(Float32Array, Float32Bin);
-export const Float64ArrayBin = makeTypedArrayBin(Float64Array, Float64Bin);
+export const U8ARRAY = makeTypedArrayBin(Uint8Array, UInt8Bin);
+export const U8CLAMPED_ARRAY = makeTypedArrayBin(Uint8ClampedArray, UInt8Bin);
+export const U16ARRAY = makeTypedArrayBin(Uint16Array, UInt16Bin);
+export const U32ARRAY = makeTypedArrayBin(Uint32Array, UInt32Bin);
+export const U64ARRAY = makeTypedArrayBin(BigUint64Array, UInt64Bin);
+export const I8ARRAY = makeTypedArrayBin(Int8Array, Int8Bin);
+export const I16ARRAY = makeTypedArrayBin(Int16Array, Int16Bin);
+export const I32ARRAY = makeTypedArrayBin(Int32Array, Int32Bin);
+export const I64ARRAY = makeTypedArrayBin(BigInt64Array, Int64Bin);
+export const F32ARRAY = makeTypedArrayBin(Float32Array, Float32Bin);
+export const F64ARRAY = makeTypedArrayBin(Float64Array, Float64Bin);

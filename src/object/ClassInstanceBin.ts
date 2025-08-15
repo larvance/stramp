@@ -1,7 +1,6 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import ObjectBin from "./ObjectBin";
-import Stramp from "../Stramp";
 import UInt8Bin from "../number/UInt8Bin";
 
 type EmptyClassType = { new(): any };
@@ -16,7 +15,7 @@ class ClassInstanceBinConstructor<K extends EmptyClassType[]> extends Bin<Instan
     add<V extends EmptyClassType>(clazz: V) {
         this.classes.push(clazz);
         this.classes = this.classes.sort((a, b) => a.name < b.name ? -1 : 1);
-        this.numBin = Stramp.getTypeOf(this.classes.length);
+        this.numBin = Bin.any.getTypeOf(this.classes.length);
         this.numBinSize = this.numBin.unsafeSize(1);
         return <ClassInstanceBinConstructor<[V, ...K]>><any>this;
     };

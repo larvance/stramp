@@ -1,59 +1,59 @@
 // noinspection JSUnusedGlobalSymbols
 
 import {BufferIndex} from "./BufferIndex";
-import BigIntBin from "./number/BigIntBin";
-import UBigIntBin from "./number/UBigIntBin";
-import Float64Bin from "./number/Float64Bin";
-import Float32Bin from "./number/Float32Bin";
-import Int64Bin from "./number/Int64Bin";
-import Int32Bin from "./number/Int32Bin";
-import Int16Bin from "./number/Int16Bin";
-import Int8Bin from "./number/Int8Bin";
-import UInt64Bin from "./number/UInt64Bin";
-import UInt32Bin from "./number/UInt32Bin";
-import UInt16Bin from "./number/UInt16Bin";
-import UInt8Bin from "./number/UInt8Bin";
-import ZeroBin from "./number/specials/ZeroBin";
-import BigZeroBin from "./number/specials/BigZeroBin";
-import NaNBin from "./number/specials/NaNBin";
-import NullBin from "./constant/NullBin";
-import UndefinedBin from "./constant/UndefinedBin";
-import InfinityBin from "./number/specials/InfinityBin";
-import NegativeInfinityBin from "./number/specials/NegativeInfinityBin";
-import TrueBin from "./boolean/TrueBin";
-import FalseBin from "./boolean/FalseBin";
-import BooleanBin from "./boolean/BooleanBin";
-import ArrayBin, {
-    BufferBin,
-    Float32ArrayBin,
-    Float64ArrayBin,
-    Int16ArrayBin,
-    Int32ArrayBin,
-    Int64ArrayBin,
-    Int8ArrayBin,
-    SetBin,
-    UInt16ArrayBin,
-    UInt32ArrayBin,
-    UInt64ArrayBin,
-    UInt8ArrayBin,
-    UInt8ClampedArrayBin
+import BIGINT from "./number/BigIntBin";
+import U_BIGINT from "./number/UBigIntBin";
+import F64 from "./number/Float64Bin";
+import F32 from "./number/Float32Bin";
+import I64 from "./number/Int64Bin";
+import I32 from "./number/Int32Bin";
+import I16 from "./number/Int16Bin";
+import I8 from "./number/Int8Bin";
+import U64 from "./number/UInt64Bin";
+import U32 from "./number/UInt32Bin";
+import U16 from "./number/UInt16Bin";
+import U8 from "./number/UInt8Bin";
+import ZERO from "./number/specials/ZeroBin";
+import BIG_ZERO from "./number/specials/BigZeroBin";
+import NAN from "./number/specials/NaNBin";
+import NULL from "./constant/NullBin";
+import UNDEFINED from "./constant/UndefinedBin";
+import INF from "./number/specials/InfinityBin";
+import NEG_INF from "./number/specials/NegativeInfinityBin";
+import TRUE from "./boolean/TrueBin";
+import FALSE from "./boolean/FalseBin";
+import BOOL from "./boolean/BooleanBin";
+import ARRAY, {
+    BUFFER,
+    F32ARRAY,
+    F64ARRAY,
+    I16ARRAY,
+    I32ARRAY,
+    I64ARRAY,
+    I8ARRAY,
+    SET,
+    U16ARRAY,
+    U32ARRAY,
+    U64ARRAY,
+    U8ARRAY,
+    U8CLAMPED_ARRAY
 } from "./array/ArrayBin";
-import AnyBin, {AnyBinConstructor} from "./any/AnyBin";
+import ANY, {AnyBinConstructor} from "./any/AnyBin";
 import {__def, Bin, getBinByInternalId} from "./Bin";
 import NegBigIntBin from "./number/NegBigIntBin";
-import DateBin from "./object/DateBin";
-import ObjectBin from "./object/ObjectBin";
-import {String16Bin, String32Bin, String8Bin} from "./string/LengthBasedStringBin";
-import CStringBin from "./string/CStringBin";
-import MapBin, {MapBinConstructor} from "./object/MapBin";
-import ClassInstanceBin from "./object/ClassInstanceBin";
-import IgnoreBin from "./misc/IgnoreBin";
-import RegExpBin from "./object/RegExpBin";
+import DATE from "./object/DateBin";
+import OBJECT from "./object/ObjectBin";
+import {S16, S32, S8} from "./string/LengthBasedStringBin";
+import C_STRING from "./string/CStringBin";
+import MAP from "./object/MapBin";
+import CLASS_INSTANCE from "./object/ClassInstanceBin";
+import IGNORE from "./misc/IgnoreBin";
+import REGEXP from "./object/RegExpBin";
 import IntBaseBin from "./number/base/IntBaseBin";
 import BigIntBaseBin from "./number/base/BigIntBaseBin";
 import ObjectStructBin from "./object/ObjectStructBin";
-import NumberBin from "./number/NumberBin";
-import ConstantBin, {ConstantBinConstructor} from "./misc/ConstantBin";
+import NUMBER from "./number/NumberBin";
+import CONSTANT, {ConstantBinConstructor} from "./misc/ConstantBin";
 import {AnyValueBinConstructor} from "./any/AnyValueBin";
 import {DefaultsToBin} from "./misc/DefaultsToBin";
 
@@ -63,73 +63,73 @@ class Stramp extends Bin {
     sample = null;
 
     // -- Specials --
-    null = NullBin;
-    undefined = UndefinedBin;
-    true = TrueBin;
-    false = FalseBin;
-    zero = ZeroBin;
-    bigZero = BigZeroBin;
-    NaN = NaNBin;
-    inf = InfinityBin;
-    negInf = NegativeInfinityBin;
+    null = NULL as typeof NULL;
+    undefined = UNDEFINED as typeof UNDEFINED;
+    true = TRUE as typeof TRUE;
+    false = FALSE as typeof FALSE;
+    zero = ZERO as typeof ZERO;
+    bigZero = BIG_ZERO as typeof BIG_ZERO;
+    NaN = NAN as typeof NAN;
+    inf = INF as typeof INF;
+    negInf = NEG_INF as typeof NEG_INF;
     // -- Specials --
 
-    u8 = UInt8Bin;
-    u16 = UInt16Bin;
-    u32 = UInt32Bin;
-    u64 = UInt64Bin;
+    u8 = U8 as typeof U8;
+    u16 = U16 as typeof U16;
+    u32 = U32 as typeof U32;
+    u64 = U64 as typeof U64;
 
-    i8 = Int8Bin;
-    i16 = Int16Bin;
-    i32 = Int32Bin;
-    i64 = Int64Bin;
+    i8 = I8 as typeof I8;
+    i16 = I16 as typeof I16;
+    i32 = I32 as typeof I32;
+    i64 = I64 as typeof I64;
 
-    f32 = Float32Bin;
-    f64 = Float64Bin;
-    number = NumberBin;
+    f32 = F32 as typeof F32;
+    f64 = F64 as typeof F64;
+    number = NUMBER as typeof NUMBER;
 
-    ubigint = UBigIntBin;
-    bigint = BigIntBin;
+    ubigint = U_BIGINT as typeof U_BIGINT;
+    bigint = BIGINT as typeof BIGINT;
 
-    string8 = String8Bin;
-    string16 = String16Bin;
-    string32 = String32Bin;
-    s8 = String8Bin;
-    s16 = String16Bin;
-    s32 = String32Bin;
-    str8 = String8Bin;
-    str16 = String16Bin;
-    str32 = String32Bin;
-    cstring = CStringBin;
+    string8 = S8 as typeof S8;
+    string16 = S16 as typeof S16;
+    string32 = S32 as typeof S32;
+    s8 = S8 as typeof S8;
+    s16 = S16 as typeof S16;
+    s32 = S32 as typeof S32;
+    str8 = S8 as typeof S8;
+    str16 = S16 as typeof S16;
+    str32 = S32 as typeof S32;
+    cstring = C_STRING as typeof C_STRING;
 
-    bool = BooleanBin;
-    boolean = BooleanBin;
+    bool = BOOL as typeof BOOL;
+    boolean = BOOL as typeof BOOL;
 
-    array = ArrayBin;
-    set = SetBin;
-    buffer = BufferBin;
-    u8array = UInt8ArrayBin;
-    u8clampedArray = UInt8ClampedArrayBin;
-    u16array = UInt16ArrayBin;
-    u32array = UInt32ArrayBin;
-    u64array = UInt64ArrayBin;
-    i8array = Int8ArrayBin;
-    i16array = Int16ArrayBin;
-    i32array = Int32ArrayBin;
-    i64array = Int64ArrayBin;
-    f32array = Float32ArrayBin;
-    f64array = Float64ArrayBin;
+    array = ARRAY as typeof ARRAY;
+    set = SET as typeof SET;
+    buffer = BUFFER as typeof BUFFER;
+    u8array = U8ARRAY as typeof U8ARRAY;
+    u8clampedArray = U8CLAMPED_ARRAY as typeof U8CLAMPED_ARRAY;
+    u16array = U16ARRAY as typeof U16ARRAY;
+    u32array = U32ARRAY as typeof U32ARRAY;
+    u64array = U64ARRAY as typeof U64ARRAY;
+    i8array = I8ARRAY as typeof I8ARRAY;
+    i16array = I16ARRAY as typeof I16ARRAY;
+    i32array = I32ARRAY as typeof I32ARRAY;
+    i64array = I64ARRAY as typeof I64ARRAY;
+    f32array = F32ARRAY as typeof F32ARRAY;
+    f64array = F64ARRAY as typeof F64ARRAY;
 
-    object = ObjectBin;
-    map = MapBin as MapBinConstructor<Bin, Bin, Map<Bin["__TYPE__"], Bin["__TYPE__"]>>;
-    class = ClassInstanceBin;
+    object = OBJECT as typeof OBJECT;
+    map = MAP as typeof MAP;
+    class = CLASS_INSTANCE as typeof CLASS_INSTANCE;
 
-    date = DateBin;
-    regexp = RegExpBin;
+    date = DATE as typeof DATE;
+    regexp = REGEXP as typeof REGEXP;
 
-    any = AnyBin;
-    ignore = IgnoreBin;
-    constant = ConstantBin;
+    any = ANY as typeof ANY;
+    ignore = IGNORE as typeof IGNORE;
+    constant = CONSTANT as typeof CONSTANT;
 
     unsafeWrite(bind: BufferIndex, value: any): void {
         const type = this.getTypeOf(value)!;
@@ -154,19 +154,19 @@ class Stramp extends Bin {
     };
 
     getNumberTypeOf(value: number): Bin<number> {
-        if (isNaN(value)) return NaNBin;
-        if (value === Infinity) return InfinityBin;
-        if (value === -Infinity) return NegativeInfinityBin;
-        if (value === 0) return <Bin<number>>ZeroBin;
+        if (isNaN(value)) return NAN;
+        if (value === Infinity) return INF;
+        if (value === -Infinity) return NEG_INF;
+        if (value === 0) return <Bin<number>>ZERO;
         if (value % 1 === 0) {
             if (value >= 0) {
-                if (value <= 127) return UInt8Bin;
-                if (value <= 32_767) return UInt16Bin;
-                if (value <= 2_147_483_647) return UInt32Bin;
+                if (value <= 127) return U8;
+                if (value <= 32_767) return U16;
+                if (value <= 2_147_483_647) return U32;
             } else {
-                if (value >= -128) return Int8Bin;
-                if (value >= -32_768) return Int16Bin;
-                if (value >= -2_147_483_648) return Int32Bin;
+                if (value >= -128) return I8;
+                if (value >= -32_768) return I16;
+                if (value >= -2_147_483_648) return I32;
             }
         }
 
@@ -179,57 +179,57 @@ class Stramp extends Bin {
             const f32 = new Float32Array(1); // if you ever want to allow float32 by default move this outside for performance
             f32[0] = value;
             if (Math.abs(value - f32[0]) < 1e-15) {
-                return Float32Bin;
+                return F32;
             }
         }*/
 
-        return Float64Bin;
+        return F64;
     };
 
     getTypeOf<T>(value: T): Bin<T> | null;
 
     getTypeOf(value: any): any {
-        if (value === true) return TrueBin;
-        if (value === false) return FalseBin;
-        if (value === null) return NullBin;
-        if (value === undefined) return UndefinedBin;
+        if (value === true) return TRUE;
+        if (value === false) return FALSE;
+        if (value === null) return NULL;
+        if (value === undefined) return UNDEFINED;
         if (typeof value === "bigint") {
-            if (value === 0n) return BigZeroBin;
+            if (value === 0n) return BIG_ZERO;
             if (value > 0n) {
-                if (value > UInt64Bin.max) return BigIntBin;
-                return UInt64Bin;
+                if (value > U64.max) return BIGINT;
+                return U64;
             }
-            if (value < -Int64Bin.min) return NegBigIntBin;
-            return Int64Bin;
+            if (value < -I64.min) return NegBigIntBin;
+            return I64;
         }
         if (typeof value === "number") {
             return this.getNumberTypeOf(value);
         }
         if (typeof value === "string") {
-            if (value.length <= UInt8Bin.max) return String8Bin;
-            if (value.length <= UInt16Bin.max) return String16Bin;
-            if (value.length <= UInt32Bin.max) return String32Bin;
+            if (value.length <= U8.max) return S8;
+            if (value.length <= U16.max) return S16;
+            if (value.length <= U32.max) return S32;
 
             // This is an impossible case because of JavaScript's string length limit, but it's here for completeness
-            return CStringBin;
+            return C_STRING;
         }
-        if (Array.isArray(value)) return ArrayBin;
-        if (value instanceof Date) return DateBin;
-        if (value instanceof Map) return MapBin;
-        if (value instanceof Set) return SetBin;
-        if (value instanceof Uint8Array) return UInt8ArrayBin;
-        if (value instanceof Uint8ClampedArray) return UInt8ClampedArrayBin;
-        if (value instanceof Uint16Array) return UInt16ArrayBin;
-        if (value instanceof Uint32Array) return UInt32ArrayBin;
-        if (value instanceof BigUint64Array) return UInt64ArrayBin;
-        if (value instanceof Int8Array) return Int8ArrayBin;
-        if (value instanceof Int16Array) return Int16ArrayBin;
-        if (value instanceof Int32Array) return Int32ArrayBin;
-        if (value instanceof BigInt64Array) return Int64ArrayBin;
-        if (value instanceof Float32Array) return Float32ArrayBin;
-        if (value instanceof Float64Array) return Float64ArrayBin;
-        if (value instanceof RegExp) return RegExpBin;
-        if (typeof value === "object") return value.constructor === Object ? ObjectBin : ClassInstanceBin;
+        if (Array.isArray(value)) return ARRAY;
+        if (value instanceof Date) return DATE;
+        if (value instanceof Map) return MAP;
+        if (value instanceof Set) return SET;
+        if (value instanceof Uint8Array) return U8ARRAY;
+        if (value instanceof Uint8ClampedArray) return U8CLAMPED_ARRAY;
+        if (value instanceof Uint16Array) return U16ARRAY;
+        if (value instanceof Uint32Array) return U32ARRAY;
+        if (value instanceof BigUint64Array) return U64ARRAY;
+        if (value instanceof Int8Array) return I8ARRAY;
+        if (value instanceof Int16Array) return I16ARRAY;
+        if (value instanceof Int32Array) return I32ARRAY;
+        if (value instanceof BigInt64Array) return I64ARRAY;
+        if (value instanceof Float32Array) return F32ARRAY;
+        if (value instanceof Float64Array) return F64ARRAY;
+        if (value instanceof RegExp) return REGEXP;
+        if (typeof value === "object") return value.constructor === Object ? OBJECT : CLASS_INSTANCE;
 
         return null;
     };
@@ -248,68 +248,70 @@ class Stramp extends Bin {
 
 const stramp = new Stramp;
 
+Bin.any = stramp;
+
 export default stramp;
 
 __def.AnyBin = AnyBinConstructor;
-__def.UndefinedBin = <any>UndefinedBin;
-__def.NullBin = <any>NullBin;
+__def.UndefinedBin = <any>UNDEFINED;
+__def.NullBin = <any>NULL;
 __def.DefaultsToBin = DefaultsToBin;
 
 // noinspection ReservedWordAsName
 export {
-    UInt8Bin as u8,
-    UInt16Bin as u16,
-    UInt32Bin as u32,
-    UInt64Bin as u64,
-    Int8Bin as i8,
-    Int16Bin as i16,
-    Int32Bin as i32,
-    Int64Bin as i64,
-    Float32Bin as f32,
-    Float64Bin as f64,
-    UBigIntBin as ubigint,
-    BigIntBin as bigint,
-    String8Bin as s8,
-    String8Bin as str8,
-    String8Bin as string8,
-    String16Bin as s16,
-    String16Bin as str16,
-    String16Bin as string16,
-    String32Bin as s32,
-    String32Bin as str32,
-    String32Bin as string32,
-    CStringBin as cstring,
-    BooleanBin as bool,
-    ArrayBin as array,
-    SetBin as set,
-    BufferBin as buffer,
-    UInt8ArrayBin as u8array,
-    UInt16ArrayBin as u16array,
-    UInt32ArrayBin as u32array,
-    UInt64ArrayBin as u64array,
-    Int8ArrayBin as i8array,
-    Int16ArrayBin as i16array,
-    Int32ArrayBin as i32array,
-    Int64ArrayBin as i64array,
-    Float32ArrayBin as f32array,
-    Float64ArrayBin as f64array,
-    ObjectBin as object,
-    MapBin as map,
-    ClassInstanceBin as class,
-    DateBin as date,
-    RegExpBin as regexp,
-    AnyBin as any,
-    IgnoreBin as ignore,
-    ConstantBin as constant,
-    NullBin as null,
-    UndefinedBin as undefined,
-    TrueBin as true,
-    FalseBin as false,
-    ZeroBin as zero,
-    BigZeroBin as bigZero,
-    NaNBin as NaN,
-    InfinityBin as inf,
-    NegativeInfinityBin as negInf,
+    U8 as u8,
+    U16 as u16,
+    U32 as u32,
+    U64 as u64,
+    I8 as i8,
+    I16 as i16,
+    I32 as i32,
+    I64 as i64,
+    F32 as f32,
+    F64 as f64,
+    U_BIGINT as ubigint,
+    BIGINT as bigint,
+    S8 as s8,
+    S8 as str8,
+    S8 as string8,
+    S16 as s16,
+    S16 as str16,
+    S16 as string16,
+    S32 as s32,
+    S32 as str32,
+    S32 as string32,
+    C_STRING as cstring,
+    BOOL as bool,
+    ARRAY as array,
+    SET as set,
+    BUFFER as buffer,
+    U8ARRAY as u8array,
+    U16ARRAY as u16array,
+    U32ARRAY as u32array,
+    U64ARRAY as u64array,
+    I8ARRAY as i8array,
+    I16ARRAY as i16array,
+    I32ARRAY as i32array,
+    I64ARRAY as i64array,
+    F32ARRAY as f32array,
+    F64ARRAY as f64array,
+    OBJECT as object,
+    MAP as map,
+    CLASS_INSTANCE as class,
+    DATE as date,
+    REGEXP as regexp,
+    ANY as any,
+    IGNORE as ignore,
+    CONSTANT as constant,
+    NULL as null,
+    UNDEFINED as undefined,
+    TRUE as true,
+    FALSE as false,
+    ZERO as zero,
+    BIG_ZERO as bigZero,
+    NAN as NaN,
+    INF as inf,
+    NEG_INF as negInf,
 
     Bin,
     BufferIndex,

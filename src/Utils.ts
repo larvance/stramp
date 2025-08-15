@@ -1,9 +1,3 @@
-import {String32Bin} from "./string/LengthBasedStringBin";
-import UInt32Bin from "./number/UInt32Bin";
-
-export const DefaultStringBin = String32Bin;
-export const DefaultLengthBin = UInt32Bin;
-
 export const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&\/=]*)/;
 export const cuidRegex = /^c[^\s-]{8,}$/i;
 export const cuid2Regex = /^[0-9a-z]+$/;

@@ -1,6 +1,5 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
-import Stramp from "../Stramp";
 
 type so<SD extends Record<string, Bin>> = {
     [K in keyof SD as SD[K]["isOptional"] extends true ? never : K]: SD[K]["__TYPE__"];
@@ -35,7 +34,7 @@ export default class ObjectStructBinConstructor<
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             let v = <any>this.structData[key];
-            if (!(v instanceof Bin)) v = Stramp.getStrictTypeOf(v);
+            if (!(v instanceof Bin)) v = Bin.any.getStrictTypeOf(v);
             newStructData[key] = v;
         }
 

@@ -1,7 +1,7 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import {ArrayBinConstructor} from "./ArrayBin";
-import {DefaultLengthBin} from "../Utils";
+import {DefaultLengthBin} from "../Defaults";
 
 export class ArrayStructBinConstructor<
     ClassType extends "array" | "set" | Iterable<any>,
@@ -128,3 +128,5 @@ export class ArrayStructBinConstructor<
         return o;
     };
 }
+
+ArrayBinConstructor.Struct = ArrayStructBinConstructor;
