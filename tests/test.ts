@@ -1,19 +1,29 @@
-import * as X from "../src/Stramp";
+import X from "../src/Stramp";
 
-// Note that the keyTyped only accepts a string bin
-const myType = X.object.keyTyped(X.string8).valueTyped(X.u8);
+class MyStruct {
+    @X.def(X.u8) a = 155;
 
-const myObject = {
-    a: 10,
-    b: 20,
-    c: 30
-};
+    b: number; // This is not a part of the structure, so it won't be saved/loaded.
 
-const buffer = myType.serialize(myObject);
+    constructor(b = 10) {
+        this.b = b;
+    };
 
-// The first 4 bytes are the size of the object, you can change it like this:  .lengthBytes(X.u8)
-console.log(buffer); // <Buffer 03 00 00 00 01 61 0a 01 62 14 01 63 1e>
+    log() {
+        console.log(this.a * this.b);
+    };
+}
 
-const restoredObject = myType.deserialize(buffer);
+const struct1 = new MyStruct();
 
-console.log(restoredObject); // Will have the same values as myObject
+const buffer = X.save(struct1);
+
+console.log(buffer);
+
+const struct2 = new MyStruct();
+
+X.load(struct2, buffer);
+
+console.log(struct2);
+
+struct2.log();

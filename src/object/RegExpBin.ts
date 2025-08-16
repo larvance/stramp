@@ -1,21 +1,20 @@
-import {Bin} from "../Bin";
+import {__def, Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
 class RegExpBinConstructor extends Bin<RegExp> {
-    isOptional = false as const;
     name = "regex";
     sample = / /;
 
     unsafeWrite(bind: BufferIndex, value: RegExp): void {
-        Bin.any.unsafeWrite(bind, value.source);
+        __def.Stramp.unsafeWrite(bind, value.source);
     };
 
     read(bind: BufferIndex): RegExp {
-        return Bin.any.read(bind);
+        return __def.Stramp.read(bind);
     };
 
     unsafeSize(value: RegExp): number {
-        return Bin.any.unsafeSize(value);
+        return __def.Stramp.unsafeSize(value);
     };
 
     findProblem(value: any, _ = false) {

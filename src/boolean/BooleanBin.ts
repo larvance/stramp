@@ -4,7 +4,6 @@ import {BufferIndex} from "../BufferIndex";
 class BooleanBinConstructor extends Bin<boolean> {
     name = "bool";
     sample = false;
-    isOptional = false as const;
 
     unsafeWrite(bind: BufferIndex, value: boolean) {
         bind.push(+value);

@@ -60,6 +60,6 @@ export default class LengthBasedStringBin extends StringBin {
     };
 }
 
-export const S8 = new LengthBasedStringBin("string8", UInt8Bin).init();
-export const S16 = new LengthBasedStringBin("string16", UInt16Bin).init();
-export const S32 = new LengthBasedStringBin("string32", UInt32Bin).init();
+export const S8 = new LengthBasedStringBin("string8", <Bin<number>><unknown>UInt8Bin).init();
+export const S16 = new LengthBasedStringBin("string16", <Bin<number>><unknown>UInt16Bin).init();
+export const S32 = new LengthBasedStringBin("string32", <Bin<number>><unknown>UInt32Bin).init();

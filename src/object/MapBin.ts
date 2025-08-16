@@ -1,4 +1,4 @@
-import {Bin} from "../Bin";
+import {__def, Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import {DefaultLengthBin} from "../Defaults";
 
@@ -7,7 +7,6 @@ export class MapBinConstructor<
     VType extends Bin,
     T extends Map<KType["__TYPE__"], VType["__TYPE__"]> = Map<KType["__TYPE__"], VType["__TYPE__"]>
 > extends Bin<T> {
-    isOptional = false as const;
     name: string;
     lengthBinSize: number;
 
@@ -29,8 +28,8 @@ export class MapBinConstructor<
     unsafeWrite(bind: BufferIndex, map: T) {
         const length = map.size;
         this.lengthBin.unsafeWrite(bind, length);
-        const keyType = this.keyType ?? Bin.any;
-        const valueType = this.valueType ?? Bin.any;
+        const keyType = this.keyType ?? __def.Stramp;
+        const valueType = this.valueType ?? __def.Stramp;
 
         for (const [key, value] of map) {
             keyType.unsafeWrite(bind, key);
@@ -38,11 +37,11 @@ export class MapBinConstructor<
         }
     };
 
-    read(bind: BufferIndex): T {
+    read(bind: BufferIndex, base: T | null = null): T {
         const length = this.lengthBin.read(bind);
-        const result = <T>new Map;
-        const keyType = this.keyType ?? Bin.any;
-        const valueType = this.valueType ?? Bin.any;
+        const result = base || <T>new Map;
+        const keyType = this.keyType ?? __def.Stramp;
+        const valueType = this.valueType ?? __def.Stramp;
 
         for (let i = 0; i < length; i++) {
             const key = keyType.read(bind);
@@ -53,8 +52,8 @@ export class MapBinConstructor<
     };
 
     unsafeSize(map: T): number {
-        const keyType = this.keyType ?? Bin.any;
-        const valueType = this.valueType ?? Bin.any;
+        const keyType = this.keyType ?? __def.Stramp;
+        const valueType = this.valueType ?? __def.Stramp;
 
         let size = this.lengthBinSize;
 
@@ -69,8 +68,8 @@ export class MapBinConstructor<
     findProblem(map: any, strict = false) {
         if (map === null || typeof map !== "object") return this.makeProblem("Expected an object");
 
-        const keyType = this.keyType ?? Bin.any;
-        const valueType = this.valueType ?? Bin.any;
+        const keyType = this.keyType ?? __def.Stramp;
+        const valueType = this.valueType ?? __def.Stramp;
 
         for (const [key, value] of Object.entries(map)) {
             const keyError = keyType.findProblem(key, strict);
@@ -113,6 +112,15 @@ export class MapBinConstructor<
         o.init();
         return o;
     };
+
+    typed<KType extends Bin, VType extends Bin>(
+        keyType: KType,
+        valueType: VType
+    ) {
+        const o = <MapBinConstructor<KType, VType>>new MapBinConstructor(keyType, valueType, this.lengthBin);
+        o.init();
+        return o;
+    }
 
     withLengthBin<N extends Bin>(lengthBin: N) {
         const o = new MapBinConstructor(this.keyType, this.valueType, lengthBin);

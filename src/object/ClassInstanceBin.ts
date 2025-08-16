@@ -1,4 +1,4 @@
-import {Bin} from "../Bin";
+import {__def, Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import ObjectBin from "./ObjectBin";
 import UInt8Bin from "../number/UInt8Bin";
@@ -6,18 +6,17 @@ import UInt8Bin from "../number/UInt8Bin";
 type EmptyClassType = { new(): any };
 
 class ClassInstanceBinConstructor<K extends EmptyClassType[]> extends Bin<InstanceType<K[number]>> {
-    isOptional = false as const;
     name = "date";
     classes: EmptyClassType[] = [];
     numBin: Bin<number> = UInt8Bin;
     numBinSize = 1;
 
-    add<V extends EmptyClassType>(clazz: V) {
-        this.classes.push(clazz);
+    add<V extends EmptyClassType[]>(...classes: V) {
+        this.classes.push(...classes);
         this.classes = this.classes.sort((a, b) => a.name < b.name ? -1 : 1);
-        this.numBin = Bin.any.getTypeOf(this.classes.length);
+        this.numBin = __def.Stramp.getTypeOf(this.classes.length);
         this.numBinSize = this.numBin.unsafeSize(1);
-        return <ClassInstanceBinConstructor<[V, ...K]>><any>this;
+        return <ClassInstanceBinConstructor<[...V, ...K]>><any>this;
     };
 
     unsafeWrite(bind: BufferIndex, value: any): void {
@@ -25,9 +24,9 @@ class ClassInstanceBinConstructor<K extends EmptyClassType[]> extends Bin<Instan
         ObjectBin.unsafeWrite(bind, value);
     };
 
-    read(bind: BufferIndex): any {
+    read(bind: BufferIndex, base = null): any {
         const index = this.numBin.read(bind);
-        const obj = ObjectBin.read(bind);
+        const obj = ObjectBin.read(bind, base);
         const inst = new this.classes[index];
         Object.assign(inst, obj);
         return inst;

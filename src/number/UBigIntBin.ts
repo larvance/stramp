@@ -1,11 +1,11 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import {Buffer} from "buffer";
+import {Big0} from "../Utils";
 
 class UBigIntBinConstructor extends Bin<bigint> {
-    isOptional = false as const;
     name = "ubi";
-    sample = 0n;
+    sample = Big0;
 
     unsafeWrite(bind: BufferIndex, value: bigint) {
         let hex = BigInt(value).toString(16);
@@ -36,9 +36,9 @@ class UBigIntBinConstructor extends Bin<bigint> {
 
     adapt(value: any) {
         if (typeof value === "number") value = BigInt(value);
-        else if (typeof value !== "bigint") value = 0n;
+        else if (typeof value !== "bigint") value = Big0;
 
-        return super.adapt(value < 0n ? -value : value);
+        return super.adapt(value < Big0 ? -value : value);
     };
 }
 

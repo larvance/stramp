@@ -13,24 +13,23 @@ import {
 } from "../Utils";
 
 export abstract class StringBin extends Bin<string> {
-    isOptional = false as const;
-    #regexValue: RegExp | null = null;
-    #lenMin = 0;
-    #lenMax = Infinity;
+    private regexValue: RegExp | null = null;
+    private lenMin = 0;
+    private lenMax = Infinity;
 
     findStringProblems(value: any) {
         if (typeof value !== "string") return this.makeProblem("Expected a string");
 
-        if (this.#regexValue && !this.#regexValue.test(value)) return this.makeProblem(`Expected a string matching the regex: /${this.#regexValue.source}/`);
+        if (this.regexValue && !this.regexValue.test(value)) return this.makeProblem(`Expected a string matching the regex: /${this.regexValue.source}/`);
 
-        if (value.length < this.#lenMin) return this.makeProblem(`Expected a string of at least ${this.#lenMin} characters`);
+        if (value.length < this.lenMin) return this.makeProblem(`Expected a string of at least ${this.lenMin} characters`);
 
-        if (value.length > this.#lenMax) return this.makeProblem(`Expected a string of at most ${this.#lenMax} characters`);
+        if (value.length > this.lenMax) return this.makeProblem(`Expected a string of at most ${this.lenMax} characters`);
     };
 
     regex(re: RegExp | null) {
         const o = this.copy();
-        o.#regexValue = re;
+        o.regexValue = re;
         return o;
     };
 
@@ -76,13 +75,13 @@ export abstract class StringBin extends Bin<string> {
 
     min(len: number) {
         const o = this.copy();
-        o.#lenMin = len;
+        o.lenMin = len;
         return o;
     };
 
     max(len: number) {
         const o = this.copy();
-        o.#lenMax = len;
+        o.lenMax = len;
         return o;
     };
 
@@ -92,9 +91,9 @@ export abstract class StringBin extends Bin<string> {
 
     copy() {
         const o = super.copy();
-        o.#regexValue = this.#regexValue;
-        o.#lenMin = this.#lenMin;
-        o.#lenMax = this.#lenMax;
+        o.regexValue = this.regexValue;
+        o.lenMin = this.lenMin;
+        o.lenMax = this.lenMax;
         return <this>o;
     };
 }

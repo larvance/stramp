@@ -1,4 +1,4 @@
-import {Bin} from "../Bin";
+import {__def, Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import UInt8Bin from "../number/UInt8Bin";
 import UInt16Bin from "../number/UInt16Bin";
@@ -32,7 +32,7 @@ export class ArrayBinConstructor<
 
     name: string;
     lengthBinSize: number;
-    isOptional = false as const;
+    private readonly _baseClass: any;
 
     constructor(
         public readonly typesName: (types: Bin[]) => string,
@@ -46,6 +46,7 @@ export class ArrayBinConstructor<
         public readonly baseClass: new (...args: any[]) => T
     ) {
         super();
+        this._baseClass = baseClass;
     }
 
     init() {
@@ -72,28 +73,51 @@ export class ArrayBinConstructor<
             this.lengthBin.unsafeWrite(bind, length);
         }
 
-        const type = this.type || Bin.any;
+        const type = this.type || __def.Stramp;
         const arr = Array.from(value);
         for (let i = 0; i < arr.length; i++) {
             type.unsafeWrite(bind, arr[i]);
         }
     };
 
-    read(bind: BufferIndex): T {
+    read(bind: BufferIndex, base: T | null = null): T {
         const length = this.fixedSize ?? this.lengthBin.read(bind);
-        const result = new Array(length);
 
-        const type = this.type || Bin.any;
-        for (let i = 0; i < length; i++) {
-            result[i] = type.read(bind);
+        if (base !== null) {
+            if (this._baseClass !== base.constructor) {
+                throw new Error(`Cannot read into an array of type ${base.constructor.name}, expected ${this._baseClass.name}.`);
+            }
+            if (!Array.isArray(base) && !(base instanceof Set)) {
+                if ("length" in base) {
+                    if (base.length !== length) {
+                        throw new Error(`Cannot read into an array of type ${this._baseClass.name} with length ${base.length}, expected length ${length}.`);
+                    }
+                } else if ("size" in base) {
+                    if (base.size !== length) {
+                        throw new Error(`Cannot read into an array of type ${this._baseClass.name} with length ${base.size}, expected length ${length}.`);
+                    }
+                } else {
+                    throw new Error(`Cannot read into an array of type ${this._baseClass.name}, expected Array, Set or an iterable that has 'length' or 'size' defined.`);
+                }
+            }
         }
 
-        return <any>this.baseClass === Array ? <any>result : new this.baseClass(result);
+        const result: any = base !== null ? base : new Array(length);
+
+        const type = this.type || __def.Stramp;
+        for (let i = 0; i < length; i++) {
+            const v = type.read(bind);
+            if ("add" in result) result.add(v);
+            else if ("push" in result) result.push(v);
+            else result[i] = v;
+        }
+
+        return this._baseClass === Array || base !== null ? result : new this._baseClass(result);
     };
 
     unsafeSize(value: T): number {
         let size = this.fixedSize ? 0 : this.lengthBinSize;
-        const type = this.type || Bin.any;
+        const type = this.type || __def.Stramp;
         const arr = Array.from(value);
         const length = arr.length;
 
@@ -107,9 +131,9 @@ export class ArrayBinConstructor<
     findProblem(value: any, strict = false) {
         if (value === null || typeof value !== "object" || !(Symbol.iterator in value)) return this.makeProblem("Expected an iterable");
 
-        if (strict && value.constructor !== this.baseClass) return this.makeProblem(`Expected an iterable of ${this.baseName}`);
+        if (strict && value.constructor !== this._baseClass) return this.makeProblem(`Expected an iterable of ${this.baseName}`);
 
-        const type = this.type || Bin.any;
+        const type = this.type || __def.Stramp;
         const arr = Array.from(value);
 
         if (this.fixedSize !== null && this.fixedSize !== arr.length) return this.makeProblem(`Expected an iterable of length ${this.fixedSize}, got ${arr.length}`);
@@ -121,16 +145,16 @@ export class ArrayBinConstructor<
     };
 
     get sample(): T {
-        if (!this.fixedSize) return new this.baseClass();
+        if (!this.fixedSize) return new this._baseClass();
 
-        const type = this.type || Bin.any;
+        const type = this.type || __def.Stramp;
         const result = new Array(this.fixedSize);
 
         for (let i = 0; i < this.fixedSize; i++) {
             result[i] = type.sample;
         }
 
-        return new this.baseClass(result);
+        return new this._baseClass(result);
     };
 
     adapt(value: any): T {
@@ -159,7 +183,7 @@ export class ArrayBinConstructor<
             value[i] = this.type.adapt(value[i]);
         }
 
-        return super.adapt(<any>this.baseClass === Array ? value : new this.baseClass(value));
+        return super.adapt(this._baseClass === Array ? value : new this._baseClass(value));
     };
 
     lengthBytes<N extends Bin<number>>(lengthBin: N) {
@@ -172,7 +196,7 @@ export class ArrayBinConstructor<
             this.type,
             this.fixedSize,
             lengthBin,
-            this.baseClass
+            this._baseClass
         );
         o.init();
         return o;
@@ -188,7 +212,7 @@ export class ArrayBinConstructor<
             this.type,
             fixedSize,
             this.lengthBin,
-            this.baseClass
+            this._baseClass
         );
         o.init();
         return o;
@@ -204,7 +228,7 @@ export class ArrayBinConstructor<
             type,
             this.fixedSize,
             this.lengthBin,
-            <any>this.baseClass
+            this._baseClass
         );
         o.init();
         return o;
@@ -231,14 +255,14 @@ export class ArrayBinConstructor<
     };
 
     struct<N extends any[]>(types: Bin<N[number]>[]) {
-        return new ArrayBinConstructor.Struct<ClassType, N[number]>(
+        return new __def.ArrayStructBin<ClassType, N[number]>(
             this.typesName,
             this.typeName,
             this.fixedName,
             this.fixedTypeName,
             this.baseName,
             types,
-            <any>this.baseClass
+            this._baseClass
         );
     };
 
@@ -252,7 +276,7 @@ export class ArrayBinConstructor<
             this.type,
             this.fixedSize,
             this.lengthBin,
-            this.baseClass
+            this._baseClass
         );
         if (init) o.init();
         return <this><unknown>o;

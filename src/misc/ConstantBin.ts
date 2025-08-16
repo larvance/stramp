@@ -1,7 +1,8 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
+import {OptionalBin} from "../OptionalBin";
 
-export class ConstantBinConstructor<T> extends Bin<T> {
+export class ConstantBinConstructor<T> extends Bin<T> implements OptionalBin {
     isOptional = true as const;
 
     constructor(

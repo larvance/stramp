@@ -1,26 +1,25 @@
-import {Bin} from "../Bin";
+import {__def, Bin} from "../Bin";
 import type {BufferIndex} from "../Stramp";
 
-export class AnyValueBinConstructor<T extends any[]> extends Bin<T[number]> {
+export class AnyValueBinConstructor<K extends any[], T extends K[number] = K[number]> extends Bin<T> {
     name = "any";
-    isOptional = false as const;
 
-    constructor(public values: T, public idBin = Bin.any.getTypeOf(values.length), public idBinSize = idBin.unsafeSize(0)) {
+    constructor(public values: K, public idBin = __def.Stramp.getTypeOf(values.length), public idBinSize = idBin.unsafeSize(0)) {
         super();
         this.name = `${values.join(" | ")}`;
     };
 
-    unsafeWrite(bind: BufferIndex, value: T[number]) {
+    unsafeWrite(bind: BufferIndex, value: T) {
         const id = this.values.indexOf(value);
         this.idBin.unsafeWrite(bind, id);
     };
 
     read(bind: BufferIndex) {
         const id = this.idBin.read(bind);
-        return this.values[id];
+        return <T>this.values[id];
     };
 
-    unsafeSize(_: T[number]) {
+    unsafeSize(_: T) {
         return this.idBinSize;
     };
 
@@ -28,7 +27,7 @@ export class AnyValueBinConstructor<T extends any[]> extends Bin<T[number]> {
         if (!this.values.includes(value)) return this.makeProblem("Unsupported value");
     };
 
-    get sample() {
+    get sample(): never {
         throw new Error("Cannot make a sample for a AnyValueBin, this was most likely caused by instantiating a new struct that includes an AnyValueBin.");
     };
 

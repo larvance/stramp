@@ -1,19 +1,19 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import UBigIntBin from "./UBigIntBin";
+import {Big0, BigMinusOne, BigOne} from "../Utils";
 
 class BigIntBinConstructor extends Bin<bigint> {
-    isOptional = false as const;
     name = "bi";
-    sample = 0n;
+    sample = Big0;
 
     unsafeWrite(bind: BufferIndex, value: bigint) {
-        bind.push(value < 0n ? 1 : 0);
-        UBigIntBin.unsafeWrite(bind, value < 0n ? -value : value);
+        bind.push(value < Big0 ? 1 : 0);
+        UBigIntBin.unsafeWrite(bind, value < Big0 ? -value : value);
     };
 
     read(bind: BufferIndex) {
-        return (bind.shift() ? -1n : 1n) * UBigIntBin.read(bind);
+        return (bind.shift() ? -BigMinusOne : BigOne) * UBigIntBin.read(bind);
     };
 
     unsafeSize(value: bigint) {
@@ -26,7 +26,7 @@ class BigIntBinConstructor extends Bin<bigint> {
 
     adapt(value: any) {
         if (typeof value === "number") value = BigInt(value);
-        else if (typeof value !== "bigint") value = 0n;
+        else if (typeof value !== "bigint") value = Big0;
 
         return super.adapt(value);
     };

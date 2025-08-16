@@ -1,7 +1,6 @@
 import {Bin} from "../../Bin";
 
 export default abstract class IntBaseBin extends Bin<number> {
-    isOptional = false as const;
     sample = 0;
 
     abstract min: number;

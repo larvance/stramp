@@ -1,10 +1,12 @@
-import {Bin} from "../Bin";
+import {__def, Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
+import {OptionalBin} from "../OptionalBin";
+import {IsOptionalBin} from "../Utils";
 
-type so<SD extends Record<string, Bin>> = {
-    [K in keyof SD as SD[K]["isOptional"] extends true ? never : K]: SD[K]["__TYPE__"];
+type ExtractStruct<SD extends Record<string, Bin>> = {
+    [K in keyof SD as IsOptionalBin<SD[K]> extends true ? never : K]: SD[K]["__TYPE__"];
 } & {
-    [K in keyof SD as SD[K]["isOptional"] extends true ? K : never]?: SD[K]["__TYPE__"];
+    [K in keyof SD as IsOptionalBin<SD[K]> extends true ? K : never]?: SD[K]["__TYPE__"];
 };
 type ExcludeKeys<Obj, Keys extends string[]> = {
     [K in keyof Obj as K extends Keys[number] ? never : K]: Obj[K];
@@ -12,21 +14,22 @@ type ExcludeKeys<Obj, Keys extends string[]> = {
 
 export default class ObjectStructBinConstructor<
     StructData extends { [k: string | number]: Bin } = { [k: string | number]: Bin },
-    T = so<StructData>
+    T = ExtractStruct<StructData>
 > extends Bin<T> {
-    isOptional = false as const;
     name = "";
 
     constructor(
         public structData: StructData, // not readonly because some people might want to use it recursively.
-        public readonly classConstructor: ((obj: so<StructData>) => T),
+        public readonly classConstructor: ((obj: ExtractStruct<StructData>) => T),
         public readonly baseName: string | null
     ) {
         super();
     };
 
     init() {
-        const objName = `{ ${Object.keys(this.structData).map(i => `${i}${this.structData[i].isOptional ? "?" : ""}: ${this.structData[i].name}`).join(", ")} }`;
+        const objName = `{ ${Object.keys(this.structData).map(i => {
+            return `${i}${(<OptionalBin><unknown>this.structData[i]).isOptional ? "?" : ""}: ${this.structData[i].name}`;
+        }).join(", ")} }`;
         this.name = this.baseName ?? objName;
         const newStructData = <any>{};
         const keys = Object.keys(this.structData).sort();
@@ -34,7 +37,7 @@ export default class ObjectStructBinConstructor<
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             let v = <any>this.structData[key];
-            if (!(v instanceof Bin)) v = Bin.any.getStrictTypeOf(v);
+            if (!(v instanceof Bin)) v = __def.Stramp.getStrictTypeOf(v);
             newStructData[key] = v;
         }
 
@@ -54,10 +57,10 @@ export default class ObjectStructBinConstructor<
         }
     };
 
-    read(bind: BufferIndex): T {
+    read(bind: BufferIndex, base: T | null = null): T {
         const structData = this.structData!;
         const keys = Object.keys(structData);
-        const result = <any>{};
+        const result = base || <any>{};
 
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -65,7 +68,7 @@ export default class ObjectStructBinConstructor<
             result[key] = type.read(bind);
         }
 
-        return this.classConstructor(result);
+        return base || this.classConstructor(result);
     };
 
     unsafeSize(value: T): number {
@@ -115,12 +118,12 @@ export default class ObjectStructBinConstructor<
     adapt(value: any): T {
         if (value === null || typeof value !== "object") value = {};
 
-        const obj = <so<StructData>>{};
+        const obj = <ExtractStruct<StructData>>{};
         const keys = Object.keys(value);
 
         for (const key of this.keys()) {
             const type = this.structData[key];
-            obj[<keyof so<StructData>>key] = keys.includes(<string>key) ? type.adapt(value[key]) : type.sample;
+            obj[<keyof ExtractStruct<StructData>>key] = keys.includes(<string>key) ? type.adapt(value[key]) : type.sample;
         }
 
         return super.adapt(this.classConstructor(obj));
@@ -130,7 +133,7 @@ export default class ObjectStructBinConstructor<
         return <(keyof StructData)[]>Object.keys(this.structData);
     };
 
-    withConstructor<N>(classConstructor: ((obj: so<StructData>) => N)) {
+    withConstructor<N>(classConstructor: ((obj: ExtractStruct<StructData>) => N)) {
         const o = <ObjectStructBinConstructor<StructData, N>>new ObjectStructBinConstructor(
             this.structData,
             classConstructor,

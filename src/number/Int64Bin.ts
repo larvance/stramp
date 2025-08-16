@@ -1,11 +1,12 @@
 import {BufferIndex} from "../BufferIndex";
 import BigIntBaseBin from "./base/BigIntBaseBin";
+import {BigMax, BigMin} from "../Utils";
 
 class Int64BinConstructor extends BigIntBaseBin {
     name = "i64";
 
-    min = -9223372036854775808n;
-    max = 9223372036854775807n;
+    min = BigMin;
+    max = BigMax;
     bytes = 8;
 
     unsafeWrite(bind: BufferIndex, value: bigint) {

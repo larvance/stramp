@@ -1,10 +1,13 @@
 import {BufferIndex} from "./BufferIndex";
-import {AnyBinConstructor} from "./any/AnyBin";
 import {StrampProblem} from "./StrampProblem";
-import {DefaultsToBin} from "./misc/DefaultsToBin";
-import UndefinedBin from "./constant/UndefinedBin";
-import NullBin from "./constant/NullBin";
+import type {AnyBinConstructor} from "./any/AnyBin";
+import type {DefaultsToBin} from "./misc/DefaultsToBin";
+import type UndefinedBin from "./constant/UndefinedBin";
+import type NullBin from "./constant/NullBin";
 import type Stramp from "./Stramp";
+import type {ArrayStructBinConstructor} from "./array/ArrayStructBin";
+import type {ArrayBinConstructor} from "./array/ArrayBin";
+import type {ConstantBinConstructor} from "./misc/ConstantBin";
 
 let _id = 1;
 const bins: Record<number, Bin> = {};
@@ -14,23 +17,24 @@ export function getBinByInternalId(id: number): Bin | null {
 }
 
 export const __def = <{
+    Stramp: typeof Stramp,
     AnyBin: typeof AnyBinConstructor,
     DefaultsToBin: typeof DefaultsToBin,
+    ConstantBin: ConstantBinConstructor<"constant">,
+    ArrayBin: ArrayBinConstructor<"array">,
+    ArrayStructBin: typeof ArrayStructBinConstructor,
     UndefinedBin: typeof UndefinedBin,
     NullBin: typeof NullBin
 }>{};
 
 export abstract class Bin<T = any> {
-    static any: typeof Stramp;
-
     internalId = _id++;
     __TYPE__: T;
 
     abstract name: string;
-    abstract isOptional: boolean;
 
     abstract unsafeWrite(bind: BufferIndex, value: T | Readonly<T>): void;
-    abstract read(bind: BufferIndex): T;
+    abstract read(bind: BufferIndex, base?: T | null): T;
     abstract unsafeSize(value: T | Readonly<T>): number;
     abstract findProblem(value: any, strict?: boolean): StrampProblem | void;
     abstract get sample(): T;
@@ -41,12 +45,6 @@ export abstract class Bin<T = any> {
 
     init() {
         return this;
-    };
-
-    static create(...args: any[]) {
-        const bin = new (<any>this)(...args);
-        bin.init();
-        return bin;
     };
 
     copy() {
@@ -81,15 +79,9 @@ export abstract class Bin<T = any> {
         return bind.buffer;
     };
 
-    deserialize<Binder extends Buffer | BufferIndex>(
-        bind: Binder
-    ): T {
-        if (bind instanceof BufferIndex) return <any>this.read(bind);
-        else return <any>this.read(new BufferIndex(bind, 0));
-    };
-
-    default(default_: any): DefaultsToBin<T> {
-        return new __def.DefaultsToBin(this, default_);
+    parse<Binder extends Buffer | BufferIndex>(bind: Binder, base: T | null = null): T {
+        if (bind instanceof BufferIndex) return <any>this.read(bind, base);
+        else return <any>this.read(new BufferIndex(bind, 0), base);
     };
 
     makeProblem(problem: string, source = "") {
@@ -98,5 +90,29 @@ export abstract class Bin<T = any> {
 
     adapt(value: any): T {
         return this.findProblem(value) ? this.sample : value;
+    };
+
+    default(default_: any): DefaultsToBin<T> {
+        return new __def.DefaultsToBin(this, default_);
+    };
+
+    or<K>(other: Bin<K>) {
+        return new __def.AnyBin([this, other] as const);
+    };
+
+    orValue<K>(value: K) {
+        return this.or(__def.ConstantBin.new(value));
+    };
+
+    array() {
+        return __def.ArrayBin.of(this);
+    };
+
+    pairMap<K>(keyBin: Bin<K>) {
+        return __def.Stramp.map.typed(this, keyBin);
+    };
+
+    to<K>(...others: Bin<K>[]) {
+        return __def.Stramp.array.struct([this, ...others] as const)
     };
 }

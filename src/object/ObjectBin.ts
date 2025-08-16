@@ -1,4 +1,4 @@
-import {Bin} from "../Bin";
+import {__def, Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import ObjectStructBinConstructor from "./ObjectStructBin";
 import IntBaseBin from "../number/base/IntBaseBin";
@@ -10,7 +10,6 @@ class ObjectBinConstructor<
     VObject extends Record<string | number, VType["__TYPE__"]> = Record<string | number, VType["__TYPE__"]>,
     T = VObject
 > extends Bin<T> {
-    isOptional = false as const;
     name: string;
     lengthBinSize: number;
 
@@ -35,7 +34,7 @@ class ObjectBinConstructor<
         const keys = Object.keys(<any>value);
         const length = keys.length;
         this.lengthBin.unsafeWrite(bind, length);
-        const valueType = this.valueType ?? Bin.any;
+        const valueType = this.valueType ?? __def.Stramp;
 
         for (let i = 0; i < length; i++) {
             const key = keys[i];
@@ -44,10 +43,10 @@ class ObjectBinConstructor<
         }
     };
 
-    read(bind: BufferIndex): T {
+    read(bind: BufferIndex, base: T | null = null): T {
         const length = this.lengthBin.read(bind);
-        const result = <any>{};
-        const valueType = this.valueType ?? Bin.any;
+        const result = base || <T>{};
+        const valueType = this.valueType ?? __def.Stramp;
 
         for (let i = 0; i < length; i++) {
             const key = this.keyType.read(bind);
@@ -63,7 +62,7 @@ class ObjectBinConstructor<
     unsafeSize(value: T): number {
         const keys = Object.keys(<any>value);
         let size = this.lengthBinSize;
-        const valueType = this.valueType ?? Bin.any;
+        const valueType = this.valueType ?? __def.Stramp;
 
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -78,7 +77,7 @@ class ObjectBinConstructor<
         if (value === null || typeof value !== "object") return this.makeProblem("Expected an object");
 
         const keyType = this.keyType;
-        const valueType = this.valueType ?? Bin.any;
+        const valueType = this.valueType ?? __def.Stramp;
 
         const keys = Object.keys(value);
         for (let i = 0; i < keys.length; i++) {
@@ -165,11 +164,7 @@ class ObjectBinConstructor<
 
     copy(init = true) {
         const o = <this>new ObjectBinConstructor(
-            this.keyType,
-            this.valueType,
-            this.classConstructor,
-            this.baseName,
-            this.lengthBin
+            this.keyType, this.valueType, this.classConstructor, this.baseName, this.lengthBin
         );
         if (init) o.init();
         return o;

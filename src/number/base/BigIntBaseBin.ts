@@ -1,8 +1,8 @@
 import {Bin} from "../../Bin";
+import {Big0} from "../../Utils";
 
 export default abstract class BigIntBaseBin extends Bin<bigint | number> {
-    isOptional = false as const;
-    sample = 0n;
+    sample = Big0;
 
     abstract min: bigint;
     abstract max: bigint;
@@ -20,7 +20,7 @@ export default abstract class BigIntBaseBin extends Bin<bigint | number> {
 
     adapt(value: any) {
         if (typeof value === "number") value = BigInt(value);
-        if (typeof value !== "bigint") value = 0n;
+        if (typeof value !== "bigint") value = Big0;
 
         return super.adapt(value > this.max ? this.max : (value < this.min ? this.min : value));
     };

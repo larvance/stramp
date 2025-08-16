@@ -1,3 +1,10 @@
+import {OptionalBin} from "./OptionalBin";
+
+export const Big0 = BigInt(0);
+export const BigMin = BigInt("-9223372036854775808");
+export const BigMax = BigInt("18446744073709551615");
+export const BigMinusOne = BigInt("-1");
+export const BigOne = BigInt("1");
 export const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&\/=]*)/;
 export const cuidRegex = /^c[^\s-]{8,}$/i;
 export const cuid2Regex = /^[0-9a-z]+$/;
@@ -18,3 +25,5 @@ export const base64Regex =
     /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 export const dateRegexSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))`;
 export const dateRegex = new RegExp(`^${dateRegexSource}$`);
+
+export type IsOptionalBin<T> = T extends OptionalBin ? true : false;

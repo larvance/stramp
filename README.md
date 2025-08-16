@@ -177,7 +177,7 @@ const buffer = myType.serialize(myArray);
 // The rest of the bytes are the array's values
 console.log(buffer); // <Buffer 05 00 00 00 05 03 01 02 04>
 
-const restoredArray = myType.deserialize(buffer);
+const restoredArray = myType.parse(buffer);
 
 console.log(restoredArray); // [5, 3, 1, 2, 4]
 
@@ -196,7 +196,7 @@ const buffer = myType.serialize(myArray);
 
 console.log(buffer); // <Buffer 05 03 01 02 04>
 
-const restoredArray = myType.deserialize(buffer);
+const restoredArray = myType.parse(buffer);
 
 console.log(restoredArray); // [5, 3, 1, 2, 4]
 ```
@@ -258,7 +258,7 @@ const buffer = myType.serialize(myObject);
 // The first 4 bytes are the size of the object, you can change it like this:  .lengthBytes(X.u8)
 console.log(buffer); // <Buffer 03 00 00 00 01 61 0a 01 62 14 01 63 1e>
 
-const restoredObject = myType.deserialize(buffer);
+const restoredObject = myType.parse(buffer);
 
 console.log(restoredObject); // Will have the same values as myObject
 ```
@@ -288,7 +288,7 @@ console.log(buffer); // <Buffer 1e 08 4a 6f 68 6e 20 44 6f 65 01 02 03 04 05>
 // This drops 50 bytes of JSON down to 15 bytes!
 // Meaning 1000 of this object would gain you THIRTY FIVE THOUSAND BYTES!
 
-const restoredObject = myType.deserialize(buffer);
+const restoredObject = myType.parse(buffer);
 
 console.log(restoredObject); // Will have the same values as myObject
 ```
@@ -338,7 +338,7 @@ const buffer = VectorType.serialize(myVector);
 console.log(buffer); // <Buffer 68 b3 ea 73 85 ca b8 40 c9 e5 3f a4 1f 03 b4 40>
 // This small change of using a struct reduces the byte size to only 16 bytes! (8 bytes per number because f64 has 64 bits)
 
-const restoredVector = VectorType.deserialize(buffer);
+const restoredVector = VectorType.parse(buffer);
 
 console.log(restoredVector); // Vector { x: 6346.5213, y: 5123.1236 }
 ```
@@ -355,6 +355,46 @@ import * as X from "stramp";
 const myBin = X.u8;
 
 type MyType = X.infer<typeof myBin>; // MyType will be 'number'
+```
+
+## With Modern Decorators
+
+You can use decorators inside your classes to define the structure of your data.
+
+Only the properties that have been decorated with `@def` will be saved and loaded.
+
+This is useful for defining the structure of your data without having to create a separate Bin for it.
+
+```ts
+import X from "stramp";
+
+class MyStruct {
+    @X.def(X.u8) a = 155;
+
+    b: number; // This is not a part of the structure, so it won't be saved/loaded.
+
+    constructor(b = 10) {
+        this.b = b;
+    };
+
+    log() {
+        console.log(this.a * this.b);
+    };
+}
+
+const struct1 = new MyStruct();
+
+const buffer = X.save(struct1);
+
+console.log(buffer);
+
+const struct2 = new MyStruct();
+
+X.load(struct2, buffer);
+
+console.log(struct2);
+
+struct2.log();
 ```
 
 ## The limitations

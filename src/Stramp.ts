@@ -56,9 +56,10 @@ import NUMBER from "./number/NumberBin";
 import CONSTANT, {ConstantBinConstructor} from "./misc/ConstantBin";
 import {AnyValueBinConstructor} from "./any/AnyValueBin";
 import {DefaultsToBin} from "./misc/DefaultsToBin";
+import {Big0} from "./Utils";
+import {ArrayStructBinConstructor} from "./array/ArrayStructBin";
 
 class Stramp extends Bin {
-    isOptional = false as const;
     name = "any";
     sample = null;
 
@@ -119,6 +120,7 @@ class Stramp extends Bin {
     i64array = I64ARRAY as typeof I64ARRAY;
     f32array = F32ARRAY as typeof F32ARRAY;
     f64array = F64ARRAY as typeof F64ARRAY;
+    tuple = ARRAY.struct([]);
 
     object = OBJECT as typeof OBJECT;
     map = MAP as typeof MAP;
@@ -137,10 +139,10 @@ class Stramp extends Bin {
         type.unsafeWrite(bind, value);
     };
 
-    read(bind: BufferIndex) {
+    read(bind: BufferIndex, base = null) {
         const id = bind.shift()!;
         const type = getBinByInternalId(id)!;
-        return type.read(bind);
+        return type.read(bind, base);
     };
 
     unsafeSize(value: any): number {
@@ -194,8 +196,8 @@ class Stramp extends Bin {
         if (value === null) return NULL;
         if (value === undefined) return UNDEFINED;
         if (typeof value === "bigint") {
-            if (value === 0n) return BIG_ZERO;
-            if (value > 0n) {
+            if (value === Big0) return BIG_ZERO;
+            if (value > Big0) {
                 if (value > U64.max) return BIGINT;
                 return U64;
             }
@@ -244,18 +246,98 @@ class Stramp extends Bin {
 
         return base;
     };
+
+    def<TDesc extends Bin>(desc: TDesc) {
+        return def<TDesc>(desc);
+    }
+
+    load(self: any, buffer: Buffer | BufferIndex) {
+        return load(self, buffer);
+    };
+
+    save(self: any): Buffer;
+    save(self: any, buffer: Buffer | BufferIndex): BufferIndex;
+    save(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
+        return save(self, buffer);
+    };
 }
+
+__def.AnyBin = AnyBinConstructor;
+__def.DefaultsToBin = DefaultsToBin;
+__def.ConstantBin = CONSTANT;
+__def.ArrayBin = ARRAY;
+__def.ArrayStructBin = ArrayStructBinConstructor
+__def.UndefinedBin = <any>UNDEFINED;
+__def.NullBin = <any>NULL;
 
 const stramp = new Stramp;
 
-Bin.any = stramp;
-
 export default stramp;
+__def.Stramp = stramp;
 
-__def.AnyBin = AnyBinConstructor;
-__def.UndefinedBin = <any>UNDEFINED;
-__def.NullBin = <any>NULL;
-__def.DefaultsToBin = DefaultsToBin;
+export const tuple = stramp.tuple;
+export const StructSymbol = Symbol("StructSymbol");
+
+export function def<TDesc extends Bin>(desc: TDesc) {
+    return function <K extends string | symbol>(
+        _value: unknown,
+        context: {
+            kind: "field";
+            name: K;
+            addInitializer(init: () => void): void;
+        }
+    ): void {
+        context.addInitializer(function () {
+            const currentValue = (this as any)[context.name];
+            (this.constructor[StructSymbol] ??= {})[context.name] ??= currentValue === undefined ? desc : desc.default(currentValue);
+        });
+    } as unknown as {
+        (target: any, context: any): void;
+        type: TDesc["__TYPE__"];
+    };
+}
+
+export function load(self: any, buffer: Buffer | BufferIndex) {
+    const clazz = self.constructor;
+
+    if (!(StructSymbol in clazz)) {
+        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
+    }
+
+    const bind = buffer instanceof Buffer ? new BufferIndex(buffer, 0) : <BufferIndex>buffer;
+
+    const struct = clazz[StructSymbol] as Record<string, Bin>;
+
+    for (const k in struct) {
+        self[k] = struct[k].read(bind);
+    }
+}
+
+export function save(self: any): Buffer;
+export function save(self: any, buffer: Buffer | BufferIndex): BufferIndex;
+export function save(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
+    const clazz = self.constructor;
+
+    if (!(StructSymbol in clazz)) {
+        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
+    }
+
+    const struct = clazz[StructSymbol] as Record<string, Bin>;
+
+    const hadBuffer = !!buffer;
+
+    buffer ||= BufferIndex.alloc(Object.keys(struct).reduce((a, b) => a + struct[b].getSize(self[b]), 0));
+
+    const bind = buffer instanceof Buffer ? new BufferIndex(buffer, 0) : <BufferIndex>(buffer);
+
+    for (const k in struct) {
+        struct[k].write(bind, self[k]);
+    }
+
+    if (!hadBuffer) return bind.buffer;
+
+    return bind;
+}
 
 // noinspection ReservedWordAsName
 export {

@@ -1,7 +1,8 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
+import {OptionalBin} from "../OptionalBin";
 
-class IgnoreBinConstructor extends Bin<undefined> {
+class IgnoreBinConstructor extends Bin<undefined> implements OptionalBin {
     name = "Ignore";
     sample = <undefined>undefined;
     isOptional = true as const;
