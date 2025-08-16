@@ -247,9 +247,9 @@ class Stramp extends Bin {
         return base;
     };
 
-    def<TDesc extends Bin>(desc: TDesc) {
-        return def<TDesc>(desc);
-    }
+    def(desc: object, context?: any) {
+        return def(desc, context);
+    };
 
     load(self: any, buffer: Buffer | BufferIndex) {
         return load(self, buffer);
@@ -259,6 +259,10 @@ class Stramp extends Bin {
     save(self: any, buffer: Buffer | BufferIndex): BufferIndex;
     save(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
         return save(self, buffer);
+    };
+
+    structSize(self: any) {
+        return structSize(self);
     };
 }
 
@@ -277,8 +281,18 @@ __def.Stramp = stramp;
 
 export const tuple = stramp.tuple;
 export const StructSymbol = Symbol("StructSymbol");
+export const SubStructSymbol = Symbol("SubStructSymbol");
 
-export function def<TDesc extends Bin>(desc: TDesc) {
+export function def(desc: object, context?: any): any {
+    if (context && context.kind === "field" && context.name) {
+        context.addInitializer(function () {
+            const struct = this.constructor[StructSymbol] ??= [];
+            if (struct.some((i: any) => i.name === context.name)) return;
+            struct.push({name: context.name, bin: SubStructSymbol});
+        });
+        return;
+    }
+
     return function <K extends string | symbol>(
         _value: unknown,
         context: {
@@ -288,13 +302,15 @@ export function def<TDesc extends Bin>(desc: TDesc) {
         }
     ): void {
         context.addInitializer(function () {
-            const currentValue = (this as any)[context.name];
-            (this.constructor[StructSymbol] ??= {})[context.name] ??= currentValue === undefined ? desc : desc.default(currentValue);
+            const currentValue = this[context.name];
+            const struct = this.constructor[StructSymbol] ??= [];
+            if (struct.some((i: any) => i.name === context.name)) return;
+            struct.push({
+                name: context.name,
+                bin: currentValue === undefined ? desc : (desc as Bin).default(currentValue)
+            });
         });
-    } as unknown as {
-        (target: any, context: any): void;
-        type: TDesc["__TYPE__"];
-    };
+    } as (target: any, context: any) => void;
 }
 
 export function load(self: any, buffer: Buffer | BufferIndex) {
@@ -306,11 +322,28 @@ export function load(self: any, buffer: Buffer | BufferIndex) {
 
     const bind = buffer instanceof Buffer ? new BufferIndex(buffer, 0) : <BufferIndex>buffer;
 
-    const struct = clazz[StructSymbol] as Record<string, Bin>;
+    const struct = clazz[StructSymbol] as any[];
 
-    for (const k in struct) {
-        self[k] = struct[k].read(bind);
+    for (const {name, bin} of struct) {
+        self[name] = bin instanceof Bin ? bin.read(bind) : load(self[name], bind);
     }
+
+    return self;
+}
+
+export function structSize(self: any) {
+    const clazz = self.constructor;
+
+    if (!(StructSymbol in clazz)) {
+        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
+    }
+
+    const struct = clazz[StructSymbol] as any[];
+
+    return struct.reduce((inc, {name, bin}) => {
+        if (bin === SubStructSymbol) return inc + structSize(self[name]);
+        return inc + bin.getSize(self[name]);
+    }, 0);
 }
 
 export function save(self: any): Buffer;
@@ -322,16 +355,20 @@ export function save(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferI
         throw new Error(`${clazz.name} instance is not initialized with a structure.`);
     }
 
-    const struct = clazz[StructSymbol] as Record<string, Bin>;
+    const struct = clazz[StructSymbol] as any[];
 
     const hadBuffer = !!buffer;
 
-    buffer ||= BufferIndex.alloc(Object.keys(struct).reduce((a, b) => a + struct[b].getSize(self[b]), 0));
+    buffer ||= BufferIndex.alloc(structSize(self));
 
     const bind = buffer instanceof Buffer ? new BufferIndex(buffer, 0) : <BufferIndex>(buffer);
 
-    for (const k in struct) {
-        struct[k].write(bind, self[k]);
+    for (const {name, bin} of struct) {
+        if (bin === SubStructSymbol) {
+            save(self[name], bind);
+            continue;
+        }
+        bin.write(bind, self[name]);
     }
 
     if (!hadBuffer) return bind.buffer;
