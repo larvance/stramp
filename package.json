@@ -1,6 +1,6 @@
 {
   "name": "stramp",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A JavaScript library that can convert any kind of data into binary that can be restored",
   "main": "index.min.js",
   "types": "types/Stramp.d.ts",
@@ -12,11 +12,11 @@
     "postpublish": "npm run clean"
   },
   "dependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
     "buffer": "^6.0.3",
     "util": "^0.12.5"
   },
   "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-commonjs": "^28.0.0",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-typescript": "^12.1.1",
