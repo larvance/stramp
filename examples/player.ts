@@ -18,17 +18,25 @@ class Vec3 {
 class Player extends Vec3 {
     @X.def(X.f32) health = 100;
 
-    velocity = new Vec3();
+    @X.def velocity = new Vec3();
+
+    get file() {
+        return `players/${this.name}.sp`;
+    };
 
     constructor(readonly name: string) {
         super();
-        if (fs.existsSync(`players/${name}.stramp`)) {
-            X.load(this, fs.readFileSync(`players/${name}.stramp`));
+        if (fs.existsSync(this.file)) {
+            try {
+                X.load(this, fs.readFileSync(this.file));
+            } catch {
+                console.error(`Failed to load player data for ${name}.sp`);
+            }
         }
     };
 
     save() {
-        fs.writeFileSync(`players/${this.name}.stramp`, X.save(this));
+        fs.writeFileSync(this.file, X.save(this));
     };
 }
 

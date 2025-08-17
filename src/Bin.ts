@@ -104,8 +104,10 @@ export abstract class Bin<T = any> {
         return this.or(__def.ConstantBin.new(value));
     };
 
-    array() {
-        return __def.ArrayBin.of(this);
+    array(size?: number) {
+        let bin = __def.ArrayBin.of(this);
+        if (typeof size === "number") bin = bin.sized(size);
+        return bin;
     };
 
     pairMap<K>(keyBin: Bin<K>) {

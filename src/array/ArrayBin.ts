@@ -187,7 +187,7 @@ export class ArrayBinConstructor<
     };
 
     lengthBytes<N extends Bin<number>>(lengthBin: N) {
-        const o = new ArrayBinConstructor(
+        const o = <ArrayBinConstructor<ClassType, K, T>>new ArrayBinConstructor(
             this.typesName,
             this.typeName,
             this.fixedName,
@@ -203,7 +203,7 @@ export class ArrayBinConstructor<
     };
 
     sized<N extends number>(fixedSize: N) {
-        const o = new ArrayBinConstructor(
+        const o = <ArrayBinConstructor<ClassType, K, T>>new ArrayBinConstructor(
             this.typesName,
             this.typeName,
             this.fixedName,

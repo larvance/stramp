@@ -247,23 +247,10 @@ class Stramp extends Bin {
         return base;
     };
 
-    def(desc: object, context?: any) {
-        return def(desc, context);
-    };
-
-    load(self: any, buffer: Buffer | BufferIndex) {
-        return load(self, buffer);
-    };
-
-    save(self: any): Buffer;
-    save(self: any, buffer: Buffer | BufferIndex): BufferIndex;
-    save(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
-        return save(self, buffer);
-    };
-
-    structSize(self: any) {
-        return structSize(self);
-    };
+    def = def;
+    load = load;
+    save = save;
+    structSize = structSize;
 }
 
 __def.AnyBin = AnyBinConstructor;
