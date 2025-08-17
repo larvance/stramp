@@ -289,12 +289,12 @@ export function def(desc: object, context?: any): any {
         }
     ): void {
         context.addInitializer(function () {
-            const currentValue = this[context.name];
+            // const currentValue = this[context.name];
             const struct = this.constructor[StructSymbol] ??= [];
             if (struct.some((i: any) => i.name === context.name)) return;
             struct.push({
                 name: context.name,
-                bin: currentValue === undefined ? desc : (desc as Bin).default(currentValue)
+                bin: desc
             });
         });
     } as (target: any, context: any) => void;
