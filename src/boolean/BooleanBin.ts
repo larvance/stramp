@@ -17,11 +17,11 @@ class BooleanBinConstructor extends Bin<boolean> {
         return 1;
     };
 
-    findProblem(value: any, _: any) {
+    findProblem(value: unknown, _: unknown) {
         if (typeof value !== "boolean") return this.makeProblem("Expected a boolean");
     };
 
-    adapt(value: any) {
+    adapt(value: unknown) {
         return Boolean(value);
     };
 }

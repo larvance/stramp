@@ -4,12 +4,11 @@ import {ArrayBinConstructor} from "./ArrayBin";
 import {DefaultLengthBin} from "../Defaults";
 
 export class ArrayStructBinConstructor<
-    ClassType extends "array" | "set" | Iterable<any>,
-    K extends any = any,
+    ClassType extends "array" | "set" | Iterable<K>,
+    K = unknown,
     T extends Iterable<K> = ClassType extends "array" ? K[] : (ClassType extends "set" ? Set<K> : ClassType)
 > extends Bin<T> {
     public name: string;
-    private readonly _baseClass: any;
 
     constructor(
         public readonly typesName: (types: Bin[]) => string,
@@ -18,10 +17,9 @@ export class ArrayStructBinConstructor<
         public readonly fixedTypeName: (fixed: number, type: Bin) => string,
         public readonly baseName: string,
         public readonly types: Bin<K>[] | null = null,
-        public readonly baseClass: new (...args: any[]) => T
+        public readonly baseClass: new (...args: unknown[]) => T
     ) {
         super();
-        this._baseClass = baseClass;
     };
 
     init() {
@@ -43,34 +41,34 @@ export class ArrayStructBinConstructor<
         const length = types.length;
 
         if (base !== null) {
-            if (this._baseClass !== base.constructor) {
-                throw new Error(`Cannot read into an array of type ${base.constructor.name}, expected ${this._baseClass.name}.`);
+            if (this.baseClass !== base.constructor) {
+                throw new Error(`Cannot read into an array of type ${base.constructor.name}, expected ${this.baseClass.name}.`);
             }
             if (!Array.isArray(base) && !(base instanceof Set)) {
                 if ("length" in base) {
                     if (base.length !== length) {
-                        throw new Error(`Cannot read into an array of type ${this._baseClass.name} with length ${base.length}, expected length ${length}.`);
+                        throw new Error(`Cannot read into an array of type ${this.baseClass.name} with length ${base.length}, expected length ${length}.`);
                     }
                 } else if ("size" in base) {
                     if (base.size !== length) {
-                        throw new Error(`Cannot read into an array of type ${this._baseClass.name} with length ${base.size}, expected length ${length}.`);
+                        throw new Error(`Cannot read into an array of type ${this.baseClass.name} with length ${base.size}, expected length ${length}.`);
                     }
                 } else {
-                    throw new Error(`Cannot read into an array of type ${this._baseClass.name}, expected Array, Set or an iterable that has 'length' or 'size' defined.`);
+                    throw new Error(`Cannot read into an array of type ${this.baseClass.name}, expected Array, Set or an iterable that has 'length' or 'size' defined.`);
                 }
             }
         }
 
-        const result: any = base !== null ? base : new Array(length);
+        const result = base !== null ? <Set<unknown>><unknown>base : new Array(length);
 
         for (let i = 0; i < length; i++) {
             const v = types[i].read(bind);
             if ("add" in result) result.add(v);
             else if ("push" in result) result.push(v);
-            else result[i] = v;
+            else (<unknown[]>result)[i] = v;
         }
 
-        return this._baseClass === Array ? result : new this._baseClass(result);
+        return (<ArrayConstructor | typeof this.baseClass>this.baseClass) === Array ? <T><unknown>result : new this.baseClass(result);
     };
 
     unsafeSize(value: T): number {
@@ -85,13 +83,13 @@ export class ArrayStructBinConstructor<
         return size;
     };
 
-    findProblem(value: any, strict = false) {
+    findProblem(value: unknown, strict = false) {
         if (value === null || typeof value !== "object" || !(Symbol.iterator in value)) return this.makeProblem("Expected an iterable");
 
-        if (strict && value.constructor !== this._baseClass) return this.makeProblem(`Expected an iterable of ${this.baseName}`);
+        if (strict && value.constructor !== this.baseClass) return this.makeProblem(`Expected an iterable of ${this.baseName}`);
 
         const types = this.types!;
-        const arr = Array.from(value);
+        const arr = Array.from(value as Iterable<unknown>);
 
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
@@ -108,20 +106,20 @@ export class ArrayStructBinConstructor<
             result[i] = types[i].sample;
         }
 
-        return new this._baseClass(result);
+        return new this.baseClass(result);
     };
 
-    adapt(value: any): T {
+    adapt(value: unknown): T {
         if (typeof value !== "object" || value === null || !(Symbol.iterator in value)) value = [];
 
-        value = Array.from(value);
+        const arr = Array.from(value as Iterable<unknown>);
         const fixedSize = this.types.length;
 
         for (let i = 0; i < fixedSize; i++) {
-            value[i] = i >= value.length ? this.types[i].sample : this.types[i].adapt(value[i]);
+            arr[i] = i >= arr.length ? this.types[i].sample : this.types[i].adapt(arr[i]);
         }
 
-        return super.adapt(value);
+        return super.adapt(arr);
     };
 
     normal() {
@@ -134,7 +132,7 @@ export class ArrayStructBinConstructor<
             null,
             null,
             DefaultLengthBin,
-            this._baseClass
+            this.baseClass
         );
     };
 
@@ -146,7 +144,7 @@ export class ArrayStructBinConstructor<
             this.fixedTypeName,
             this.baseName,
             this.types,
-            this._baseClass
+            this.baseClass
         );
         if (init) o.init();
         return o;

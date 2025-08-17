@@ -35,25 +35,24 @@ export default class LengthBasedStringBin extends StringBin {
         return this.lengthBytes + Buffer.byteLength(value);
     };
 
-    findProblem(value: any, _: any) {
+    findProblem(value: unknown) {
         const p = this.findStringProblems(value);
         if (p) return p;
 
-        if (this.lengthBin.findProblem(value.length)) return this.makeProblem(`Expected string length to be a ${this.lengthBin.name}`);
+        if (this.lengthBin.findProblem((<string>value).length)) return this.makeProblem(`Expected string length to be a ${this.lengthBin.name}`);
     };
 
-    adapt(value: any) {
+    adapt(value: unknown) {
         const p = this.findStringProblems(value);
         if (p) p.throw();
-
-        const len = this.lengthBin.adapt(value.length);
-
-        return super.adapt(value.slice(0, len));
+        const v = <string>value;
+        const len = this.lengthBin.adapt(v.length);
+        return super.adapt(v.slice(0, len));
     };
 
     copy(init = true) {
-        const o = super.copy();
-        (<any>o).name = this.name;
+        const o = <this>super.copy();
+        o.name = this.name;
         o.lengthBin = this.lengthBin;
         if (init) o.init();
         return o;

@@ -17,7 +17,7 @@ class Float32BinConstructor extends Bin<number> {
         return 4;
     };
 
-    findProblem(value: any, strict = false) {
+    findProblem(value: unknown, strict = false) {
         if (typeof value !== "number") return this.makeProblem("Expected a number");
         if (strict) {
             if (value > 3.4028235e38 || value < -3.4028235e38) return this.makeProblem("Expected a number between -3.4028235e38 and 3.4028235e38");

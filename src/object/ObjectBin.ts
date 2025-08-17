@@ -31,7 +31,7 @@ class ObjectBinConstructor<
     };
 
     unsafeWrite(bind: BufferIndex, value: T) {
-        const keys = Object.keys(<any>value);
+        const keys = Object.keys(value);
         const length = keys.length;
         this.lengthBin.unsafeWrite(bind, length);
         const valueType = this.valueType ?? __def.Stramp;
@@ -60,7 +60,7 @@ class ObjectBinConstructor<
     };
 
     unsafeSize(value: T): number {
-        const keys = Object.keys(<any>value);
+        const keys = Object.keys(value);
         let size = this.lengthBinSize;
         const valueType = this.valueType ?? __def.Stramp;
 
@@ -73,7 +73,7 @@ class ObjectBinConstructor<
         return size;
     };
 
-    findProblem(value: any, strict = false) {
+    findProblem(value: unknown, strict = false) {
         if (value === null || typeof value !== "object") return this.makeProblem("Expected an object");
 
         const keyType = this.keyType;
@@ -92,10 +92,10 @@ class ObjectBinConstructor<
     };
 
     get sample(): T {
-        return this.classConstructor(<any>{});
+        return this.classConstructor(<VObject>{});
     };
 
-    adapt(value: any): T {
+    adapt(value: unknown): T {
         if (value === null || typeof value !== "object") value = {};
 
         const obj = {};

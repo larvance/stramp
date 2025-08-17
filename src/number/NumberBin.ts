@@ -15,15 +15,15 @@ class NumberBinConstructor extends Bin<number> {
 
     read(bind: BufferIndex) {
         const type = getBinByInternalId(bind.shift());
-        return type.read(bind);
+        return <number>type.read(bind);
     };
 
     unsafeSize(value: number) {
         return __def.Stramp.getNumberTypeOf(value).unsafeSize(0) + 1;
     };
 
-    findProblem(value: any) {
-        if (typeof value !== "number") return this.makeProblem("Not a number", value);
+    findProblem(value: unknown) {
+        if (typeof value !== "number") return this.makeProblem("Not a number", value + "");
 
         if (value < this.minValue || value > this.maxValue) return this.makeProblem(`Expected a number between ${this.minValue} and ${this.maxValue}`);
     };

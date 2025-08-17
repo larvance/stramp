@@ -17,7 +17,7 @@ export abstract class StringBin extends Bin<string> {
     private lenMin = 0;
     private lenMax = Infinity;
 
-    findStringProblems(value: any) {
+    findStringProblems(value: unknown) {
         if (typeof value !== "string") return this.makeProblem("Expected a string");
 
         if (this.regexValue && !this.regexValue.test(value)) return this.makeProblem(`Expected a string matching the regex: /${this.regexValue.source}/`);

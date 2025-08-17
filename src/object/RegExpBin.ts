@@ -6,31 +6,34 @@ class RegExpBinConstructor extends Bin<RegExp> {
     sample = / /;
 
     unsafeWrite(bind: BufferIndex, value: RegExp): void {
-        __def.Stramp.unsafeWrite(bind, value.source);
+        __def.Stramp.cstring.unsafeWrite(bind, value.toString());
     };
 
     read(bind: BufferIndex): RegExp {
-        return __def.Stramp.read(bind);
+        return string2regex(__def.Stramp.cstring.read(bind));
     };
 
     unsafeSize(value: RegExp): number {
-        return __def.Stramp.unsafeSize(value);
+        return __def.Stramp.cstring.unsafeSize(value.toString());
     };
 
-    findProblem(value: any, _ = false) {
+    findProblem(value: unknown) {
         if (!(value instanceof RegExp)) return this.makeProblem("Expected a RegExp");
     };
 
-    adapt(value: any): RegExp {
-        if (typeof value === "string") {
-            const sp = value.split("/");
-            if (sp.length >= 3 && !sp[0] && sp.at(-1).split("").every(i => ["g", "i", "m", "s"].includes(i))) {
-                value = new RegExp(value.split("/").slice(1, -1).join("/"), sp.at(-1));
-            } else value = new RegExp(value)
-        }
-
+    adapt(value: unknown): RegExp {
+        if (typeof value === "string") return string2regex(value);
         return super.adapt(value);
     };
+}
+
+function string2regex(str: string) {
+    const sp = str.split("/");
+    if (sp.length >= 3 && !sp[0] && sp.at(-1).split("").every(i => ["g", "i", "m", "s"].includes(i))) {
+        return new RegExp(sp.slice(1, -1).join("/"), sp.at(-1));
+    } else {
+        return new RegExp(str);
+    }
 }
 
 export default new RegExpBinConstructor();

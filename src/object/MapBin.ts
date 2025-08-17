@@ -65,7 +65,7 @@ export class MapBinConstructor<
         return size;
     };
 
-    findProblem(map: any, strict = false) {
+    findProblem(map: unknown, strict = false) {
         if (map === null || typeof map !== "object") return this.makeProblem("Expected an object");
 
         const keyType = this.keyType ?? __def.Stramp;
@@ -84,25 +84,27 @@ export class MapBinConstructor<
         return <T>new Map;
     };
 
-    adapt(value: any): T {
+    adapt(value: unknown): T {
         if (value === null || typeof value !== "object") value = {};
 
         if (!(value instanceof Map)) value = new Map(Object.entries(value));
 
-        const map = new Map;
-        const keys = Array.from(value.keys());
+        const map = value as Map<unknown, unknown>;
+
+        const result = new Map;
+        const keys = Array.from(map.keys());
         const maxLength = 1 << this.lengthBinSize;
         if (keys.length >= maxLength) keys.length = maxLength - 1;
 
         for (const key of keys) {
-            map.set(this.keyType.adapt(key), this.valueType ? this.valueType.adapt(value.get(key)) : value.get(key));
+            result.set(this.keyType.adapt(key), this.valueType ? this.valueType.adapt(map.get(key)) : map.get(key));
         }
 
-        return super.adapt(map);
+        return super.adapt(result);
     };
 
     withKeyType<N extends Bin>(keyType: N) {
-        const o = <MapBinConstructor<N, VType>><any>new MapBinConstructor(keyType, this.valueType, this.lengthBin);
+        const o = <MapBinConstructor<N, VType>><unknown>new MapBinConstructor(keyType, this.valueType, this.lengthBin);
         o.init();
         return o;
     };
@@ -122,7 +124,7 @@ export class MapBinConstructor<
         return o;
     }
 
-    withLengthBin<N extends Bin>(lengthBin: N) {
+    withLengthBin<N extends Bin<number>>(lengthBin: N) {
         const o = new MapBinConstructor(this.keyType, this.valueType, lengthBin);
         o.init();
         return o;

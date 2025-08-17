@@ -7,18 +7,18 @@ class IgnoreBinConstructor extends Bin<undefined> implements OptionalBin {
     sample = <undefined>undefined;
     isOptional = true as const;
 
-    unsafeWrite(_: BufferIndex, __: any) {
+    unsafeWrite() {
     };
 
-    read(_: BufferIndex) {
+    read() {
         return undefined;
     };
 
-    unsafeSize(_: any) {
+    unsafeSize() {
         return 0;
     };
 
-    findProblem(_: any, __?: any) {
+    findProblem() {
     };
 
     adapt() {

@@ -24,15 +24,15 @@ import type {ArrayStructBinConstructor} from "./ArrayStructBin";
 // - X[S]        type=X      types=null        fixedSize=S
 
 export class ArrayBinConstructor<
-    ClassType extends "array" | "set" | Iterable<any>,
-    K extends any = any,
+    ClassType extends "array" | "set" | Iterable<K>,
+    K = unknown,
     T extends Iterable<K> = ClassType extends "array" ? K[] : (ClassType extends "set" ? Set<K> : ClassType)
 > extends Bin<T> {
     static Struct: typeof ArrayStructBinConstructor;
 
     name: string;
     lengthBinSize: number;
-    private readonly _baseClass: any;
+    private readonly _baseClass: (typeof this.baseClass) & ArrayConstructor;
 
     constructor(
         public readonly typesName: (types: Bin[]) => string,
@@ -43,10 +43,10 @@ export class ArrayBinConstructor<
         public readonly type: Bin<K> | null = null,
         public readonly fixedSize: number | null = null,
         public readonly lengthBin: Bin<number> = DefaultLengthBin,
-        public readonly baseClass: new (...args: any[]) => T
+        public readonly baseClass: new (...args: unknown[]) => T
     ) {
         super();
-        this._baseClass = baseClass;
+        this._baseClass = <(typeof this.baseClass) & ArrayConstructor>baseClass;
     }
 
     init() {
@@ -69,7 +69,9 @@ export class ArrayBinConstructor<
 
     unsafeWrite(bind: BufferIndex, value: T): void {
         if (!this.fixedSize) {
-            let length: number = "size" in value ? value.size : (<any>value).length;
+            let length: number = "size" in value && typeof value.size === "number"
+                ? value.size
+                : ("length" in value && typeof value.length === "number" ? value.length : 0);
             this.lengthBin.unsafeWrite(bind, length);
         }
 
@@ -84,35 +86,35 @@ export class ArrayBinConstructor<
         const length = this.fixedSize ?? this.lengthBin.read(bind);
 
         if (base !== null) {
-            if (this._baseClass !== base.constructor) {
-                throw new Error(`Cannot read into an array of type ${base.constructor.name}, expected ${this._baseClass.name}.`);
+            if (this.baseClass !== base.constructor) {
+                throw new Error(`Cannot read into an array of type ${base.constructor.name}, expected ${this.baseClass.name}.`);
             }
             if (!Array.isArray(base) && !(base instanceof Set)) {
                 if ("length" in base) {
                     if (base.length !== length) {
-                        throw new Error(`Cannot read into an array of type ${this._baseClass.name} with length ${base.length}, expected length ${length}.`);
+                        throw new Error(`Cannot read into an array of type ${this.baseClass.name} with length ${base.length}, expected length ${length}.`);
                     }
                 } else if ("size" in base) {
                     if (base.size !== length) {
-                        throw new Error(`Cannot read into an array of type ${this._baseClass.name} with length ${base.size}, expected length ${length}.`);
+                        throw new Error(`Cannot read into an array of type ${this.baseClass.name} with length ${base.size}, expected length ${length}.`);
                     }
                 } else {
-                    throw new Error(`Cannot read into an array of type ${this._baseClass.name}, expected Array, Set or an iterable that has 'length' or 'size' defined.`);
+                    throw new Error(`Cannot read into an array of type ${this.baseClass.name}, expected Array, Set or an iterable that has 'length' or 'size' defined.`);
                 }
             }
         }
 
-        const result: any = base !== null ? base : new Array(length);
+        const result = base !== null ? <unknown[] | Set<unknown>><unknown>base : new Array(length);
 
         const type = this.type || __def.Stramp;
         for (let i = 0; i < length; i++) {
             const v = type.read(bind);
             if ("add" in result) result.add(v);
             else if ("push" in result) result.push(v);
-            else result[i] = v;
+            else (<unknown[]>result)[i] = v;
         }
 
-        return this._baseClass === Array || base !== null ? result : new this._baseClass(result);
+        return this._baseClass === Array || base !== null ? <T><unknown>result : new this.baseClass(result);
     };
 
     unsafeSize(value: T): number {
@@ -128,13 +130,13 @@ export class ArrayBinConstructor<
         return size;
     };
 
-    findProblem(value: any, strict = false) {
+    findProblem(value: unknown, strict = false) {
         if (value === null || typeof value !== "object" || !(Symbol.iterator in value)) return this.makeProblem("Expected an iterable");
 
-        if (strict && value.constructor !== this._baseClass) return this.makeProblem(`Expected an iterable of ${this.baseName}`);
+        if (strict && value.constructor !== this.baseClass) return this.makeProblem(`Expected an iterable of ${this.baseName}`);
 
         const type = this.type || __def.Stramp;
-        const arr = Array.from(value);
+        const arr = Array.from(value as Iterable<unknown>);
 
         if (this.fixedSize !== null && this.fixedSize !== arr.length) return this.makeProblem(`Expected an iterable of length ${this.fixedSize}, got ${arr.length}`);
 
@@ -145,7 +147,7 @@ export class ArrayBinConstructor<
     };
 
     get sample(): T {
-        if (!this.fixedSize) return new this._baseClass();
+        if (!this.fixedSize) return new this.baseClass();
 
         const type = this.type || __def.Stramp;
         const result = new Array(this.fixedSize);
@@ -154,36 +156,36 @@ export class ArrayBinConstructor<
             result[i] = type.sample;
         }
 
-        return new this._baseClass(result);
+        return new this.baseClass(result);
     };
 
-    adapt(value: any): T {
+    adapt(value: unknown): T {
         if (typeof value !== "object" || value === null || !(Symbol.iterator in value)) value = [];
 
-        value = Array.from(value);
+        const arr = Array.from(value as Iterable<unknown>);
 
         if (this.fixedSize) {
-            if (value.length > this.fixedSize) value.length = this.fixedSize;
+            if (arr.length > this.fixedSize) arr.length = this.fixedSize;
             else {
-                const len = value.length;
+                const len = arr.length;
 
                 for (let i = len; i < this.fixedSize; i++) {
-                    value.push(this.type ? this.type.sample : null);
+                    arr.push(this.type ? this.type.sample : null);
                 }
             }
         }
 
         const maxLength = 1 << this.lengthBinSize;
 
-        if (value.length >= maxLength) {
-            value.length = maxLength - 1;
+        if (arr.length >= maxLength) {
+            arr.length = maxLength - 1;
         }
 
-        if (this.type) for (let i = 0; i < value.length; i++) {
-            value[i] = this.type.adapt(value[i]);
+        if (this.type) for (let i = 0; i < arr.length; i++) {
+            arr[i] = this.type.adapt(arr[i]);
         }
 
-        return super.adapt(this._baseClass === Array ? value : new this._baseClass(value));
+        return super.adapt(this._baseClass === Array ? arr : new this.baseClass(arr));
     };
 
     lengthBytes<N extends Bin<number>>(lengthBin: N) {
@@ -196,7 +198,7 @@ export class ArrayBinConstructor<
             this.type,
             this.fixedSize,
             lengthBin,
-            this._baseClass
+            this.baseClass
         );
         o.init();
         return o;
@@ -212,14 +214,14 @@ export class ArrayBinConstructor<
             this.type,
             fixedSize,
             this.lengthBin,
-            this._baseClass
+            this.baseClass
         );
         o.init();
         return o;
     };
 
-    typed<N extends any>(type: Bin<N>) {
-        const o = <ArrayBinConstructor<ClassType, N>>new ArrayBinConstructor(
+    typed<N>(type: Bin<N>) {
+        const o = <ArrayBinConstructor<ClassType extends "array" ? "array" : (ClassType extends "set" ? "set" : ClassType & Iterable<N>), N>>new ArrayBinConstructor(
             this.typesName,
             this.typeName,
             this.fixedName,
@@ -234,12 +236,12 @@ export class ArrayBinConstructor<
         return o;
     };
 
-    of<N extends any>(type: Bin<N>) {
+    of<N>(type: Bin<N>) {
         return this.typed(type);
     };
 
-    classed<CT extends new (...args: any[]) => Iterable<any>>(clazz: CT) {
-        const o = <ArrayBinConstructor<InstanceType<CT>, K>><unknown>new ArrayBinConstructor(
+    classed<CT extends new (...args: unknown[]) => Iterable<NK>, NK>(clazz: CT) {
+        const o = <ArrayBinConstructor<InstanceType<CT>, NK>><unknown>new ArrayBinConstructor(
             this.typesName,
             this.typeName,
             this.fixedName,
@@ -248,13 +250,13 @@ export class ArrayBinConstructor<
             this.type,
             this.fixedSize,
             this.lengthBin,
-            clazz
+            <new (...args: unknown[]) => Iterable<K>>clazz
         );
         o.init();
         return o;
     };
 
-    struct<N extends any[]>(types: Bin<N[number]>[]) {
+    struct<N extends unknown[]>(types: Bin<N[number]>[]) {
         return new __def.ArrayStructBin<ClassType, N[number]>(
             this.typesName,
             this.typeName,
@@ -262,7 +264,7 @@ export class ArrayBinConstructor<
             this.fixedTypeName,
             this.baseName,
             types,
-            this._baseClass
+            <new (...args: unknown[]) => ClassType extends "array" ? N[number][] : ClassType extends "set" ? Set<N[number]> : ClassType><unknown>this.baseClass
         );
     };
 
@@ -276,7 +278,7 @@ export class ArrayBinConstructor<
             this.type,
             this.fixedSize,
             this.lengthBin,
-            this._baseClass
+            this.baseClass
         );
         if (init) o.init();
         return <this><unknown>o;
@@ -295,8 +297,14 @@ export default new ArrayBinConstructor<"array">(
     Array
 ).copy();
 
-export function makeTypedArrayBin<ArrayType extends Iterable<any>, T extends Bin>(clazz: new (...args: any[]) => ArrayType, type: T) {
-    return new ArrayBinConstructor<ArrayType>(
+export function makeTypedArrayBin<
+    ArrayType extends Iterable<unknown>, T extends Bin
+>(
+    clazz: (new (...args: unknown[]) => ArrayType)
+        | ((...args: unknown[]) => ArrayType),
+    type: T
+) {
+    return new ArrayBinConstructor<ArrayType, T["__TYPE__"]>(
         () => {
             throw new Error(`${clazz.name} only supports ${type.name}`);
         },
@@ -313,7 +321,7 @@ export function makeTypedArrayBin<ArrayType extends Iterable<any>, T extends Bin
         type,
         null,
         DefaultLengthBin,
-        <any>clazz
+        <new (...args: unknown[]) => ArrayType extends "array" ? null : ArrayType extends "set" ? null : ArrayType>clazz
     );
 }
 
@@ -329,7 +337,7 @@ export const SET = new ArrayBinConstructor<"set">(
     Set
 ).copy();
 
-export const BUFFER: ArrayBinConstructor<Buffer> = makeTypedArrayBin(<any>function (x: number[]) {
+export const BUFFER: ArrayBinConstructor<Buffer> = makeTypedArrayBin(function (x: number[]) {
     return Buffer.from(x);
 }, UInt8Bin);
 export const U8ARRAY = makeTypedArrayBin(Uint8Array, UInt8Bin);

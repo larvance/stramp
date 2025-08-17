@@ -20,11 +20,11 @@ class BigIntBinConstructor extends Bin<bigint> {
         return UBigIntBin.unsafeSize(value) + 1;
     };
 
-    findProblem(value: any, _: any) {
+    findProblem(value: unknown) {
         if (typeof value !== "bigint") return this.makeProblem("Expected a big integer");
     };
 
-    adapt(value: any) {
+    adapt(value: unknown) {
         if (typeof value === "number") value = BigInt(value);
         else if (typeof value !== "bigint") value = Big0;
 

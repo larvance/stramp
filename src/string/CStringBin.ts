@@ -25,21 +25,21 @@ class CStringBinConstructor extends StringBin {
         return Buffer.byteLength(value, "utf8") + 1;
     };
 
-    findProblem(value: any, _ = false) {
+    findProblem(value: unknown) {
         const p = this.findStringProblems(value);
         if (p) return p;
 
-        const buf = Buffer.from(value, "utf8");
+        const buf = Buffer.from(<string>value, "utf8");
         for (let i = 0; i < buf.length; i++) {
             if (buf[i] === 0) return this.makeProblem("Unexpected null byte", `[${i}]`);
         }
     };
 
-    adapt(value: any) {
+    adapt(value: unknown) {
         const p = this.findStringProblems(value);
         if (p) p.throw();
 
-        return super.adapt(value.replaceAll("\0", ""));
+        return super.adapt((<string>value).replaceAll("\0", ""));
     };
 }
 

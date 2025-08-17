@@ -12,16 +12,18 @@ export default abstract class BigIntBaseBin extends Bin<bigint | number> {
         return this.bytes;
     };
 
-    findProblem(value: any, _: any) {
+    findProblem(value: unknown) {
         if (typeof value === "number") value = BigInt(value);
         if (typeof value !== "bigint") return this.makeProblem("Expected a big integer");
         if (value < this.min || value > this.max) return this.makeProblem(`Expected a number between ${this.min} and ${this.max}`);
     };
 
-    adapt(value: any) {
+    adapt(value: unknown) {
         if (typeof value === "number") value = BigInt(value);
         if (typeof value !== "bigint") value = Big0;
 
-        return super.adapt(value > this.max ? this.max : (value < this.min ? this.min : value));
+        const v = value as bigint | number;
+
+        return super.adapt(v > this.max ? this.max : (v < this.min ? this.min : v));
     };
 }

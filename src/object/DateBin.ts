@@ -17,14 +17,14 @@ class DateBinConstructor extends Bin<Date> {
         return 4;
     };
 
-    findProblem(value: any, strict = false) {
+    findProblem(value: unknown, strict = false) {
         if (!(value instanceof Date)) {
             if (strict || typeof value !== "number") return this.makeProblem("Expected a Date");
             if (value < 0) return this.makeProblem("Expected a positive number");
         }
     };
 
-    adapt(value: any): Date {
+    adapt(value: unknown): Date {
         if (typeof value === "number" || typeof value === "string") value = new Date(value);
 
         if (value === new Date("") || !(value instanceof Date)) value = this.sample;

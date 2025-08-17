@@ -17,7 +17,7 @@ class Float64BinConstructor extends Bin<number> {
         return 8;
     };
 
-    findProblem(value: any) {
+    findProblem(value: unknown) {
         if (typeof value !== "number") return this.makeProblem("Expected a number");
     };
 }

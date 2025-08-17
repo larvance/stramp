@@ -14,7 +14,7 @@ export class DefaultsToBin<T> extends Bin<T> implements OptionalBin {
         this.sampleSize = this.base.unsafeSize(sample);
     };
 
-    unsafeWrite(bind: BufferIndex, value: any) {
+    unsafeWrite(bind: BufferIndex, value: T | undefined) {
         this.base.unsafeWrite(bind, value === undefined ? this.sample : value);
     };
 
@@ -22,17 +22,17 @@ export class DefaultsToBin<T> extends Bin<T> implements OptionalBin {
         return this.base.read(bind, base);
     };
 
-    unsafeSize(value: any) {
-        return value === undefined ? this.sampleSize : this.base.unsafeSize(value);
+    unsafeSize(value: unknown) {
+        return value === undefined ? this.sampleSize : this.base.unsafeSize(value as T | undefined);
     };
 
-    findProblem(value: any, strict?: any) {
+    findProblem(value: unknown, strict?: boolean) {
         if (value === undefined) return;
         return this.base.findProblem(value, strict);
     };
 
-    adapt(value: any) {
-        if (value === undefined) return value;
+    adapt(value: unknown) {
+        if (value === undefined) return value as T;
         return this.base.adapt(value);
     };
 }

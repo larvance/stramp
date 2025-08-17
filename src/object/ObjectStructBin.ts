@@ -31,17 +31,17 @@ export default class ObjectStructBinConstructor<
             return `${i}${(<OptionalBin><unknown>this.structData[i]).isOptional ? "?" : ""}: ${this.structData[i].name}`;
         }).join(", ")} }`;
         this.name = this.baseName ?? objName;
-        const newStructData = <any>{};
+        const newStructData = {};
         const keys = Object.keys(this.structData).sort();
 
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let v = <any>this.structData[key];
+            let v = this.structData[key];
             if (!(v instanceof Bin)) v = __def.Stramp.getStrictTypeOf(v);
             newStructData[key] = v;
         }
 
-        this.structData = newStructData;
+        this.structData = <StructData>newStructData;
 
         return this;
     };
@@ -60,7 +60,7 @@ export default class ObjectStructBinConstructor<
     read(bind: BufferIndex, base: T | null = null): T {
         const structData = this.structData!;
         const keys = Object.keys(structData);
-        const result = base || <any>{};
+        const result = base || <StructData>{};
 
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -68,7 +68,7 @@ export default class ObjectStructBinConstructor<
             result[key] = type.read(bind);
         }
 
-        return base || this.classConstructor(result);
+        return base || this.classConstructor(<StructData>result);
     };
 
     unsafeSize(value: T): number {
@@ -85,7 +85,7 @@ export default class ObjectStructBinConstructor<
         return size;
     };
 
-    findProblem(value: any, strict = false) {
+    findProblem(value: unknown, strict = false) {
         if (value === null || typeof value !== "object") return this.makeProblem("Expected an object");
 
         const structData = this.structData!;
@@ -102,7 +102,7 @@ export default class ObjectStructBinConstructor<
     };
 
     get sample(): T {
-        const obj = <any>{};
+        const obj = {};
         const structData = this.structData!;
         const keys = Object.keys(structData);
 
@@ -112,21 +112,21 @@ export default class ObjectStructBinConstructor<
             obj[key] = type.sample;
         }
 
-        return this.classConstructor(obj);
+        return this.classConstructor(<StructData>obj);
     };
 
-    adapt(value: any): T {
+    adapt(value: unknown): T {
         if (value === null || typeof value !== "object") value = {};
 
-        const obj = <ExtractStruct<StructData>>{};
+        const obj = {};
         const keys = Object.keys(value);
 
         for (const key of this.keys()) {
             const type = this.structData[key];
-            obj[<keyof ExtractStruct<StructData>>key] = keys.includes(<string>key) ? type.adapt(value[key]) : type.sample;
+            obj[<string>key] = keys.includes(<string>key) ? type.adapt(value[key]) : type.sample;
         }
 
-        return super.adapt(this.classConstructor(obj));
+        return super.adapt(this.classConstructor(<ExtractStruct<StructData>>obj));
     };
 
     keys() {
@@ -144,17 +144,17 @@ export default class ObjectStructBinConstructor<
     };
 
     extend<N extends { [k: string]: Bin }>(d: N | ObjectStructBinConstructor<N>) {
-        const o = <ObjectStructBinConstructor<StructData & N>><any>this.copy(false);
+        const o = <ObjectStructBinConstructor<StructData & N>><unknown>this.copy(false);
         const data = d instanceof ObjectStructBinConstructor ? d.structData : d;
 
-        o.structData = <any>{...this.structData, ...data};
+        o.structData = {...this.structData, ...data};
         o.init();
         return o;
     };
 
     excludeKeys<K extends (keyof StructData & string)[]>(...keys: K) {
         const o = this.copy(false);
-        const structData = <any>{};
+        const structData = {};
         const keysToKeep = Object.keys(this.structData).filter(k => !keys.includes(k));
 
         for (let i = 0; i < keysToKeep.length; i++) {
@@ -162,7 +162,7 @@ export default class ObjectStructBinConstructor<
             structData[key] = this.structData[key];
         }
 
-        o.structData = structData;
+        o.structData = <StructData>structData;
         o.init();
         return <ObjectStructBinConstructor<ExcludeKeys<StructData, K>>><unknown>o;
     };

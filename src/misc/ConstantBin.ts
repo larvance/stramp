@@ -23,7 +23,7 @@ export class ConstantBinConstructor<T> extends Bin<T> implements OptionalBin {
         return 0;
     };
 
-    findProblem(value: any, strict?: boolean) {
+    findProblem(value: unknown, strict?: boolean) {
         if (strict) {
             if (typeof this.sample === "number" && isNaN(this.sample) && (typeof value !== "number" || !isNaN(value))) {
                 return this.makeProblem(`Expected the constant value NaN`);

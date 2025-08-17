@@ -34,10 +34,10 @@ export class AnyBinConstructor<Bins extends Bin[], T extends Bins[number]["__TYP
     };
 
     getTypeOf<V>(value: V): Bin<V> | null {
-        return this.bins[this.getTypeIndexOf(value)] ?? null;
+        return <Bin<V>>this.bins[this.getTypeIndexOf(value)] ?? null;
     };
 
-    unsafeWrite(bind: BufferIndex, value: any, typeId = this.getTypeIndexOf(value)!) {
+    unsafeWrite(bind: BufferIndex, value: unknown, typeId = this.getTypeIndexOf(value)!) {
         this.binIndexBin.unsafeWrite(bind, typeId);
         return this.bins[typeId].unsafeWrite(bind, value);
     };
@@ -48,24 +48,24 @@ export class AnyBinConstructor<Bins extends Bin[], T extends Bins[number]["__TYP
         return type.read(bind, base);
     };
 
-    unsafeSize(value: any, type = this.getTypeOf(value)!): number {
+    unsafeSize(value: unknown, type = this.getTypeOf(value)!): number {
         return type.unsafeSize(value) + this.binIndexBin.bytes;
     };
 
-    findProblem(value: any, _ = false, type_ = this.getTypeOf(value)!) {
+    findProblem(value: unknown, _ = false, type_ = this.getTypeOf(value)!) {
         if (!type_) return this.makeProblem("Unsupported type");
     };
 
     get sample() {
-        return this.bins[0].sample;
+        return <T>this.bins[0].sample;
     };
 
     of<V extends Bin[]>(...bins: V) {
         if (bins.length === 0) throw new Error("AnyBin must have at least one bin");
-        return <AnyBinConstructor<V>><any>new AnyBinConstructor(bins);
+        return <AnyBinConstructor<V>><unknown>new AnyBinConstructor(bins);
     };
 
-    ofValues<V extends any[]>(...values: V) {
+    ofValues<V extends unknown[]>(...values: V) {
         return new AnyValueBinConstructor(values);
     };
 

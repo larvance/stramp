@@ -27,7 +27,7 @@ export const __def = <{
     NullBin: typeof NullBin
 }>{};
 
-export abstract class Bin<T = any> {
+export abstract class Bin<T = unknown> {
     internalId = _id++;
     __TYPE__: T;
 
@@ -36,7 +36,7 @@ export abstract class Bin<T = any> {
     abstract unsafeWrite(bind: BufferIndex, value: T | Readonly<T>): void;
     abstract read(bind: BufferIndex, base?: T | null): T;
     abstract unsafeSize(value: T | Readonly<T>): number;
-    abstract findProblem(value: any, strict?: boolean): StrampProblem | void;
+    abstract findProblem(value: unknown, strict?: boolean): StrampProblem | void;
     abstract get sample(): T;
 
     constructor() {
@@ -48,20 +48,20 @@ export abstract class Bin<T = any> {
     };
 
     copy() {
-        return <this>new (<any>this.constructor)();
+        return new (<new() => this>this.constructor)();
     };
 
-    write(bind: BufferIndex, value: any) {
+    write(bind: BufferIndex, value: unknown) {
         this.assert(value);
         return this.unsafeWrite(bind, value);
     };
 
-    getSize(value: any) {
+    getSize(value: unknown) {
         this.assert(value);
         return this.unsafeSize(value);
     };
 
-    assert(value: any, strict = false) {
+    assert(value: unknown, strict = false): asserts value is T {
         const err = this.findProblem(value, strict);
         if (err) err.throw();
     };
@@ -80,19 +80,19 @@ export abstract class Bin<T = any> {
     };
 
     parse<Binder extends Buffer | BufferIndex>(bind: Binder, base: T | null = null): T {
-        if (bind instanceof BufferIndex) return <any>this.read(bind, base);
-        else return <any>this.read(new BufferIndex(bind, 0), base);
+        if (bind instanceof BufferIndex) return this.read(bind, base);
+        else return this.read(new BufferIndex(bind, 0), base);
     };
 
     makeProblem(problem: string, source = "") {
         return new StrampProblem(problem, this, this, source);
     };
 
-    adapt(value: any): T {
-        return this.findProblem(value) ? this.sample : value;
+    adapt(value: unknown): T {
+        return this.findProblem(value) ? this.sample : value as T;
     };
 
-    default(default_: any): DefaultsToBin<T> {
+    default(default_: T): DefaultsToBin<T> {
         return new __def.DefaultsToBin(this, default_);
     };
 

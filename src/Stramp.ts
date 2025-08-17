@@ -129,11 +129,11 @@ class Stramp extends Bin {
     date = DATE as typeof DATE;
     regexp = REGEXP as typeof REGEXP;
 
-    any = ANY as typeof ANY;
+    any = ANY;
     ignore = IGNORE as typeof IGNORE;
     constant = CONSTANT as typeof CONSTANT;
 
-    unsafeWrite(bind: BufferIndex, value: any): void {
+    unsafeWrite(bind: BufferIndex, value: unknown): void {
         const type = this.getTypeOf(value)!;
         bind.push(type.internalId);
         type.unsafeWrite(bind, value);
@@ -145,12 +145,12 @@ class Stramp extends Bin {
         return type.read(bind, base);
     };
 
-    unsafeSize(value: any): number {
+    unsafeSize(value: unknown): number {
         const type = this.getTypeOf(value)!;
         return 1 + type.unsafeSize(value);
     };
 
-    findProblem(value: any, _ = false) {
+    findProblem(value: unknown) {
         const type = this.getTypeOf(value);
         if (!type) return this.makeProblem("Unknown type");
     };
@@ -190,7 +190,7 @@ class Stramp extends Bin {
 
     getTypeOf<T>(value: T): Bin<T> | null;
 
-    getTypeOf(value: any): any {
+    getTypeOf(value: unknown): Bin {
         if (value === true) return TRUE;
         if (value === false) return FALSE;
         if (value === null) return NULL;
@@ -238,7 +238,7 @@ class Stramp extends Bin {
 
     getStrictTypeOf<T>(value: T): Bin<T> | null;
 
-    getStrictTypeOf(value: any) {
+    getStrictTypeOf(value: unknown) {
         const base = this.getTypeOf(value);
         if ("struct" in base && typeof base.struct === "function") {
             return base.struct(value);
@@ -258,8 +258,8 @@ __def.DefaultsToBin = DefaultsToBin;
 __def.ConstantBin = CONSTANT;
 __def.ArrayBin = ARRAY;
 __def.ArrayStructBin = ArrayStructBinConstructor
-__def.UndefinedBin = <any>UNDEFINED;
-__def.NullBin = <any>NULL;
+__def.UndefinedBin = UNDEFINED;
+__def.NullBin = NULL;
 
 const stramp = new Stramp;
 
@@ -270,37 +270,42 @@ export const tuple = stramp.tuple;
 export const StructSymbol = Symbol("StructSymbol");
 export const SubStructSymbol = Symbol("SubStructSymbol");
 
-export function def(desc: object, context?: any): any {
-    if (context && context.kind === "field" && context.name) {
-        context.addInitializer(function () {
+export function def(desc: object): (_: unknown, context: unknown) => void;
+export function def(desc: object, context: unknown): void;
+export function def(desc: object, context?: unknown) {
+    if (
+        typeof context === "object"
+        && "kind" in context
+        && context.kind === "field"
+        && "name" in context
+        && context.name
+        && "addInitializer" in context
+        && typeof context.addInitializer === "function"
+    ) {
+        return context.addInitializer(function () {
             const struct = this.constructor[StructSymbol] ??= [];
-            if (struct.some((i: any) => i.name === context.name)) return;
+            if (struct.some((i: { name: string | symbol }) => i.name === context.name)) return;
             struct.push({name: context.name, bin: SubStructSymbol});
         });
-        return;
     }
 
-    return function <K extends string | symbol>(
-        _value: unknown,
-        context: {
-            kind: "field";
-            name: K;
-            addInitializer(init: () => void): void;
-        }
-    ): void {
+    return function (_: unknown, context: {
+        name: string | symbol;
+        addInitializer(init: () => void): void;
+    }): void {
         context.addInitializer(function () {
-            // const currentValue = this[context.name];
+            const currentValue = this[context.name];
             const struct = this.constructor[StructSymbol] ??= [];
-            if (struct.some((i: any) => i.name === context.name)) return;
+            if (struct.some((i: { name: string | symbol }) => i.name === context.name)) return;
             struct.push({
                 name: context.name,
-                bin: desc
+                bin: currentValue === undefined ? desc : (desc as Bin).default(currentValue)
             });
         });
-    } as (target: any, context: any) => void;
+    };
 }
 
-export function loadStruct(self: any, buffer: Buffer | BufferIndex) {
+export function loadStruct(self: unknown, buffer: Buffer | BufferIndex) {
     const clazz = self.constructor;
 
     if (!(StructSymbol in clazz)) {
@@ -309,7 +314,7 @@ export function loadStruct(self: any, buffer: Buffer | BufferIndex) {
 
     const bind = buffer instanceof Buffer ? new BufferIndex(buffer, 0) : <BufferIndex>buffer;
 
-    const struct = clazz[StructSymbol] as any[];
+    const struct = clazz[StructSymbol] as { name: string, bin: Bin }[];
 
     for (const {name, bin} of struct) {
         self[name] = bin instanceof Bin ? bin.read(bind) : loadStruct(self[name], bind);
@@ -318,14 +323,14 @@ export function loadStruct(self: any, buffer: Buffer | BufferIndex) {
     return self;
 }
 
-export function structSize(self: any) {
+export function structSize(self: unknown) {
     const clazz = self.constructor;
 
     if (!(StructSymbol in clazz)) {
         throw new Error(`${clazz.name} instance is not initialized with a structure.`);
     }
 
-    const struct = clazz[StructSymbol] as any[];
+    const struct = clazz[StructSymbol] as { name: string, bin: Bin | typeof SubStructSymbol }[];
 
     return struct.reduce((inc, {name, bin}) => {
         if (bin === SubStructSymbol) return inc + structSize(self[name]);
@@ -333,16 +338,16 @@ export function structSize(self: any) {
     }, 0);
 }
 
-export function saveStruct(self: any): Buffer;
-export function saveStruct(self: any, buffer: Buffer | BufferIndex): BufferIndex;
-export function saveStruct(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
+export function saveStruct(self: unknown): Buffer;
+export function saveStruct(self: unknown, buffer: Buffer | BufferIndex): BufferIndex;
+export function saveStruct(self: unknown, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
     const clazz = self.constructor;
 
     if (!(StructSymbol in clazz)) {
         throw new Error(`${clazz.name} instance is not initialized with a structure.`);
     }
 
-    const struct = clazz[StructSymbol] as any[];
+    const struct = clazz[StructSymbol] as { name: string, bin: Bin | typeof SubStructSymbol }[];
 
     const hadBuffer = !!buffer;
 

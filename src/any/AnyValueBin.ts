@@ -1,7 +1,7 @@
 import {__def, Bin} from "../Bin";
 import type {BufferIndex} from "../Stramp";
 
-export class AnyValueBinConstructor<K extends any[], T extends K[number] = K[number]> extends Bin<T> {
+export class AnyValueBinConstructor<K extends unknown[], T extends K[number] = K[number]> extends Bin<T> {
     name = "any";
 
     constructor(public values: K, public idBin = __def.Stramp.getTypeOf(values.length), public idBinSize = idBin.unsafeSize(0)) {
@@ -23,7 +23,7 @@ export class AnyValueBinConstructor<K extends any[], T extends K[number] = K[num
         return this.idBinSize;
     };
 
-    findProblem(value: any, _?: boolean) {
+    findProblem(value: unknown, _?: boolean) {
         if (!this.values.includes(value)) return this.makeProblem("Unsupported value");
     };
 
@@ -32,8 +32,8 @@ export class AnyValueBinConstructor<K extends any[], T extends K[number] = K[num
     };
 
     copy() {
-        const o = super.copy();
-        o.values = <any>this.values.slice();
+        const o = <this>super.copy();
+        (<{ values: unknown }>o).values = this.values.slice();
         o.idBin = this.idBin;
         o.idBinSize = this.idBinSize;
         return o;
