@@ -248,8 +248,8 @@ class Stramp extends Bin {
     };
 
     def = def;
-    load = load;
-    save = save;
+    loadStruct = loadStruct;
+    saveStruct = saveStruct;
     structSize = structSize;
 }
 
@@ -300,7 +300,7 @@ export function def(desc: object, context?: any): any {
     } as (target: any, context: any) => void;
 }
 
-export function load(self: any, buffer: Buffer | BufferIndex) {
+export function loadStruct(self: any, buffer: Buffer | BufferIndex) {
     const clazz = self.constructor;
 
     if (!(StructSymbol in clazz)) {
@@ -312,7 +312,7 @@ export function load(self: any, buffer: Buffer | BufferIndex) {
     const struct = clazz[StructSymbol] as any[];
 
     for (const {name, bin} of struct) {
-        self[name] = bin instanceof Bin ? bin.read(bind) : load(self[name], bind);
+        self[name] = bin instanceof Bin ? bin.read(bind) : loadStruct(self[name], bind);
     }
 
     return self;
@@ -333,9 +333,9 @@ export function structSize(self: any) {
     }, 0);
 }
 
-export function save(self: any): Buffer;
-export function save(self: any, buffer: Buffer | BufferIndex): BufferIndex;
-export function save(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
+export function saveStruct(self: any): Buffer;
+export function saveStruct(self: any, buffer: Buffer | BufferIndex): BufferIndex;
+export function saveStruct(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
     const clazz = self.constructor;
 
     if (!(StructSymbol in clazz)) {
@@ -352,7 +352,7 @@ export function save(self: any, buffer?: Buffer | BufferIndex): Buffer | BufferI
 
     for (const {name, bin} of struct) {
         if (bin === SubStructSymbol) {
-            save(self[name], bind);
+            saveStruct(self[name], bind);
             continue;
         }
         bin.write(bind, self[name]);

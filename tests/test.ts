@@ -16,13 +16,13 @@ class MyStruct {
 
 const struct1 = new MyStruct();
 
-const buffer = X.save(struct1);
+const buffer = X.saveStruct(struct1);
 
 console.log(buffer);
 
 const struct2 = new MyStruct();
 
-X.load(struct2, buffer);
+X.loadStruct(struct2, buffer);
 
 console.log(struct2);
 

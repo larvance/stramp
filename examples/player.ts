@@ -28,7 +28,7 @@ class Player extends Vec3 {
         super();
         if (fs.existsSync(this.file)) {
             try {
-                X.load(this, fs.readFileSync(this.file));
+                X.loadStruct(this, fs.readFileSync(this.file));
             } catch {
                 console.error(`Failed to load player data for ${name}.sp`);
             }
@@ -36,7 +36,7 @@ class Player extends Vec3 {
     };
 
     save() {
-        fs.writeFileSync(this.file, X.save(this));
+        fs.writeFileSync(this.file, X.saveStruct(this));
     };
 }
 
