@@ -62,7 +62,7 @@ export class AnyBinConstructor<Bins extends Bin[], T extends Bins[number]["__TYP
 
     of<V extends Bin[]>(...bins: V) {
         if (bins.length === 0) throw new Error("AnyBin must have at least one bin");
-        return <AnyBinConstructor<V>><unknown>new AnyBinConstructor(bins);
+        return <V[number]>new AnyBinConstructor(bins);
     };
 
     ofValues<V extends unknown[]>(...values: V) {

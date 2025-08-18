@@ -1,29 +1,5 @@
 import X from "../src/Stramp";
 
-class MyStruct {
-    @X.def(X.u8) a = 155;
+const x = X.any.of(X.any.of(X.u8, X.u16), X.i32);
 
-    b: number; // This is not a part of the structure, so it won't be saved/loaded.
-
-    constructor(b = 10) {
-        this.b = b;
-    };
-
-    log() {
-        console.log(this.a * this.b);
-    };
-}
-
-const struct1 = new MyStruct();
-
-const buffer = X.saveStruct(struct1);
-
-console.log(buffer);
-
-const struct2 = new MyStruct();
-
-X.loadStruct(struct2, buffer);
-
-console.log(struct2);
-
-struct2.log();
+const y = X.array.typed(x);
