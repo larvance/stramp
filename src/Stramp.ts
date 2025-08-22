@@ -273,6 +273,13 @@ export const SubStructSymbol = Symbol("SubStructSymbol");
 export function def(desc: object): (_: unknown, context: unknown) => void;
 export function def(desc: object, context: unknown): void;
 export function def(desc: object, context?: unknown) {
+    if (typeof context === "string") {
+        const struct = desc.constructor[StructSymbol] ??= [];
+        if (struct.some((i: { name: string | symbol }) => i.name === context)) return;
+        struct.push({name: context, bin: SubStructSymbol});
+        return;
+    }
+
     if (
         typeof context === "object"
         && "kind" in context
@@ -289,17 +296,25 @@ export function def(desc: object, context?: unknown) {
         });
     }
 
-    return function (_: unknown, context: {
+    return function (slf: unknown, context: {
         name: string | symbol;
-        addInitializer(init: () => void): void;
-    }): void {
+        addInitializer(init: Function): void;
+    } | string): void {
+        if (typeof context === "string") {
+            const struct = slf.constructor[StructSymbol] ??= [];
+            if (struct.some((i: { name: string | symbol }) => i.name === context)) return;
+            struct.push({
+                name: context,
+                bin: desc
+            });
+            return;
+        }
         context.addInitializer(function () {
-            const currentValue = this[context.name];
-            const struct = this.constructor[StructSymbol] ??= [];
+            const struct = (<object>this).constructor[StructSymbol] ??= [];
             if (struct.some((i: { name: string | symbol }) => i.name === context.name)) return;
             struct.push({
                 name: context.name,
-                bin: currentValue === undefined ? desc : (desc as Bin).default(currentValue)
+                bin: desc
             });
         });
     };

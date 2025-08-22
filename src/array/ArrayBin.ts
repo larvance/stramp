@@ -12,7 +12,6 @@ import Float32Bin from "../number/Float32Bin";
 import Float64Bin from "../number/Float64Bin";
 import {Buffer} from "buffer";
 import {DefaultLengthBin} from "../Defaults";
-import type {ArrayStructBinConstructor} from "./ArrayStructBin";
 
 // type SizedArray<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : SizedArray<T, N, [...R, T]>;
 
@@ -28,8 +27,6 @@ export class ArrayBinConstructor<
     K = unknown,
     T extends Iterable<K> = ClassType extends "array" ? K[] : (ClassType extends "set" ? Set<K> : ClassType)
 > extends Bin<T> {
-    static Struct: typeof ArrayStructBinConstructor;
-
     name: string;
     lengthBinSize: number;
     private readonly _baseClass: (typeof this.baseClass) & ArrayConstructor;
