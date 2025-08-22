@@ -108,8 +108,6 @@ class Stramp extends Bin {
     bool = BOOL as typeof BOOL;
     boolean = BOOL as typeof BOOL;
 
-    array = ARRAY as typeof ARRAY;
-    set = SET as typeof SET;
     buffer = BUFFER as typeof BUFFER;
     u8array = U8ARRAY as typeof U8ARRAY;
     u8clampedArray = U8CLAMPED_ARRAY as typeof U8CLAMPED_ARRAY;
@@ -293,6 +291,7 @@ __def.DefaultsToBin = DefaultsToBin;
 __def.ConstantBin = CONSTANT;
 __def.HighwayBin = HighwayBinConstructor;
 __def.ArrayBin = ARRAY;
+__def.SetBin = SET;
 __def.ArrayStructBin = ArrayStructBinConstructor
 __def.UndefinedBin = UNDEFINED;
 __def.NullBin = NULL;

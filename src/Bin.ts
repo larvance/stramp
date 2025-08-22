@@ -26,6 +26,7 @@ export const __def = <{
     ConstantBin: ConstantBinConstructor<"constant">,
     HighwayBin: typeof HighwayBinConstructor,
     ArrayBin: ArrayBinConstructor<"array">,
+    SetBin: ArrayBinConstructor<"set">,
     ArrayStructBin: typeof ArrayStructBinConstructor,
     UndefinedBin: typeof UndefinedBin,
     NullBin: typeof NullBin
@@ -124,6 +125,12 @@ export abstract class Bin<T = unknown> {
         return bin;
     };
 
+    set(size?: number) {
+        let bin = __def.SetBin.of(this);
+        if (typeof size === "number") bin = bin.sized(size);
+        return bin;
+    };
+
     pairMap<K>(keyBin: Bin<K>) {
         return __def.Stramp.map.typed(this, keyBin);
     };
@@ -133,7 +140,7 @@ export abstract class Bin<T = unknown> {
     };
 
     to<K>(...others: Bin<K>[]) {
-        return __def.Stramp.array.struct([this, ...others] as const)
+        return __def.ArrayBin.struct([this, ...others] as const)
     };
 
     highway<Output>(

@@ -167,7 +167,7 @@ console.log(restoredArray) // Will have the same values as myArray
 ### Typed dynamic sized arrays
 
 ```js
-const myType = X.array.typed(X.u8)
+const myType = X.u8.array()
 
 const myArray = [5, 3, 1, 2, 4]
 
@@ -188,7 +188,7 @@ const myNewType = myType.lengthBytes(X.u8) // Uses 1 byte for the length
 ### Single typed fixed sized arrays
 
 ```js
-const myType = X.array.typed(X.u8).sized(5)
+const myType = X.u8.array(5)
 
 const myArray = [5, 3, 1, 2, 4]
 
@@ -245,7 +245,7 @@ console.log(restoredObject) // Will have the same values as myObject
 
 ```js
 // Note that the keyTyped only accepts a string bin
-const myType = X.object.keyTyped(X.string8).valueTyped(X.u8)
+const myType = X.u8.pairWithKey(X.string8)
 
 const myObject = {
     a: 10,
@@ -269,7 +269,7 @@ console.log(restoredObject) // Will have the same values as myObject
 const myType = X.object.struct({
     age: X.u8,
     name: X.string8,
-    numbers: X.array.typed(X.u8).sized(5)
+    numbers: X.u8.array(5)
 })
 
 const myObject = {
