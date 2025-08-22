@@ -10,7 +10,7 @@ export class BufferIndex {
     };
 
     constructor(public buffer: Buffer, public index: number) {
-        Object.defineProperty(this, "_isBuffer", {
+        Object.defineProperty(buffer, "_isBuffer", {
             value: true,
             writable: false,
             enumerable: false,

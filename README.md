@@ -393,10 +393,10 @@ Only the properties that have been decorated with `@def` will be saved and loade
 This is useful for defining the structure of your data without having to create a separate Bin for it.
 
 ```ts
-import X from "stramp"
+import X, {def} from "stramp"
 
-class MyStruct {
-    @X.def(X.u8) a = 155
+class MyClass {
+    @def(X.u8) a = 155
 
     b: number // This is not a part of the structure, so it won't be saved/loaded.
 
@@ -409,19 +409,21 @@ class MyStruct {
     }
 }
 
-const struct1 = new MyStruct()
+const hello1 = new MyClass()
 
-const buffer = X.saveStruct(struct1)
+const struct = X.getStruct(hello1) // Is a StructBin that extends Bin so you can use every function a Bin has
+
+const buffer = struct.serialize(hello1)
 
 console.log(buffer)
 
-const struct2 = new MyStruct()
+const hello2 = new MyClass()
 
-X.loadStruct(struct2, buffer)
+struct.parse(buffer, hello2) // parse into hello2
 
-console.log(struct2)
+console.log(hello2)
 
-struct2.log()
+hello2.log()
 ```
 
 ## The limitations

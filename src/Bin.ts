@@ -10,6 +10,7 @@ import type {ArrayBinConstructor} from "./array/ArrayBin";
 import type {ConstantBinConstructor} from "./misc/ConstantBin";
 import {HighwayBinConstructor} from "./misc/HighwayBin";
 import {ObjectBinConstructor} from "./object/ObjectBin";
+import {isBuffer} from "./Utils";
 
 let _id = 1;
 const bins: Record<number, Bin> = {};
@@ -33,6 +34,7 @@ export const __def = <{
 export abstract class Bin<T = unknown> {
     internalId = _id++;
     __TYPE__: T;
+    unsafeBuffers = false;
 
     abstract name: string;
 
@@ -69,17 +71,22 @@ export abstract class Bin<T = unknown> {
         if (err) err.throw();
     };
 
-    serialize<K extends T>(value: K) {
+    serialize<K extends T>(value: K): Buffer;
+    serialize<K extends T>(value: K, bindOrBuffer: Buffer): Buffer;
+    serialize<K extends T>(value: K, bindOrBuffer: BufferIndex): BufferIndex;
+    serialize<K extends T>(value: K, bindOrBuffer?: Buffer | BufferIndex) {
         this.assert(value);
 
         // Since we just asserted, everything can be unsafe from here on out.
         const size = this.unsafeSize(value);
 
-        const bind = BufferIndex.allocUnsafe(size);
+        const bind = bindOrBuffer
+            ? (isBuffer(bindOrBuffer) ? new BufferIndex(bindOrBuffer, 0) : bindOrBuffer)
+            : (this.unsafeBuffers ? BufferIndex.allocUnsafe(size) : BufferIndex.alloc(size));
 
         this.unsafeWrite(bind, value);
 
-        return bind.buffer;
+        return bindOrBuffer instanceof BufferIndex ? bind : bind.buffer;
     };
 
     parse<Binder extends Buffer | BufferIndex>(bind: Binder, base: T | null = null): T {

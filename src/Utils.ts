@@ -27,3 +27,7 @@ export const dateRegexSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48
 export const dateRegex = new RegExp(`^${dateRegexSource}$`);
 
 export type IsOptionalBin<T> = T extends OptionalBin ? true : false;
+
+export function isBuffer(buffer: object): buffer is Buffer {
+    return buffer instanceof Buffer || "_isBuffer" in buffer;
+}

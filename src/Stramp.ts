@@ -59,7 +59,7 @@ import {AnyValueBinConstructor} from "./any/AnyValueBin";
 import {DefaultsToBin} from "./misc/DefaultsToBin";
 import {Big0} from "./Utils";
 import {ArrayStructBinConstructor} from "./array/ArrayStructBin";
-import {Buffer} from "buffer";
+import {StructBin} from "./misc/StructBin";
 
 class Stramp extends Bin {
     name = "any";
@@ -272,12 +272,20 @@ class Stramp extends Bin {
         return base;
     };
 
+    getStruct<T extends object>(self: T) {
+        const clazz = self.constructor;
+
+        if (!(StructSymbol in clazz)) {
+            throw new Error(`${clazz.name} instance is not initialized with a structure.`);
+        }
+
+        const data = clazz[StructSymbol];
+
+        if (data instanceof StructBin) return <StructBin<T>>data;
+        return clazz[StructSymbol] = new StructBin<T>(self, <Record<string, Bin>>data);
+    };
+
     def = def;
-    loadStruct = loadStruct;
-    saveStruct = saveStruct;
-    structSize = structSize;
-    structAdapt = structAdapt;
-    getStructData = getStructData;
 }
 
 __def.AnyBin = AnyBinConstructor;
@@ -301,9 +309,7 @@ export function def(desc: object): (_: unknown, context: unknown) => void;
 export function def(desc: object, context: unknown): void;
 export function def(desc: object, context?: unknown) {
     if (typeof context === "string") {
-        const struct = desc.constructor[StructSymbol] ??= [];
-        if (struct.some((i: { name: string | symbol }) => i.name === context)) return;
-        struct.push({name: context, bin: null});
+        (desc.constructor[StructSymbol] ??= {})[context] ??= null;
         return;
     }
 
@@ -317,9 +323,7 @@ export function def(desc: object, context?: unknown) {
         && typeof context.addInitializer === "function"
     ) {
         return context.addInitializer(function () {
-            const struct = this.constructor[StructSymbol] ??= [];
-            if (struct.some((i: { name: string | symbol }) => i.name === context.name)) return;
-            struct.push({name: context.name, bin: null});
+            ((<object>this).constructor[StructSymbol] ??= {})[context.name] ??= null;
         });
     }
 
@@ -328,130 +332,13 @@ export function def(desc: object, context?: unknown) {
         addInitializer(init: Function): void;
     } | string): void {
         if (typeof context === "string") {
-            const struct = slf.constructor[StructSymbol] ??= [];
-            if (struct.some((i: { name: string | symbol }) => i.name === context)) return;
-            struct.push({
-                name: context,
-                bin: desc
-            });
+            (slf.constructor[StructSymbol] ??= {})[context] ??= desc;
             return;
         }
         context.addInitializer(function () {
-            const struct = (<object>this).constructor[StructSymbol] ??= [];
-            if (struct.some((i: { name: string | symbol }) => i.name === context.name)) return;
-            struct.push({
-                name: context.name,
-                bin: desc
-            });
+            ((<object>this).constructor[StructSymbol] ??= {})[context.name] ??= desc;
         });
     };
-}
-
-function isBuffer(buffer: unknown): buffer is Buffer {
-    return buffer instanceof Buffer || "_isBuffer" in Buffer;
-}
-
-export function loadStruct(self: unknown, buffer: Buffer | BufferIndex) {
-    const clazz = self.constructor;
-
-    if (!(StructSymbol in clazz)) {
-        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
-    }
-
-    const bind = isBuffer(buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>buffer;
-
-    const struct = clazz[StructSymbol] as { name: string, bin: Bin }[];
-
-    for (const {name, bin} of struct) {
-        self[name] = bin instanceof Bin ? bin.read(bind) : loadStruct(self[name], bind);
-    }
-
-    return self;
-}
-
-export function structSize(self: unknown) {
-    const clazz = self.constructor;
-
-    if (!(StructSymbol in clazz)) {
-        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
-    }
-
-    const struct = clazz[StructSymbol] as { name: string, bin: Bin | null }[];
-
-    return struct.reduce((inc, {name, bin}) => {
-        if (bin === null) return inc + structSize(self[name]);
-        return inc + bin.getSize(self[name]);
-    }, 0);
-}
-
-export function saveStruct(self: unknown): Buffer;
-export function saveStruct(self: unknown, buffer: Buffer | BufferIndex): BufferIndex;
-export function saveStruct(self: unknown, buffer?: Buffer | BufferIndex): Buffer | BufferIndex {
-    const clazz = self.constructor;
-
-    if (!(StructSymbol in clazz)) {
-        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
-    }
-
-    const struct = clazz[StructSymbol] as { name: string, bin: Bin | null }[];
-
-    const hadBuffer = !!buffer;
-
-    buffer ||= BufferIndex.alloc(structSize(self));
-
-    const bind = isBuffer(buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>(buffer);
-
-    for (const {name, bin} of struct) {
-        if (bin === null) {
-            saveStruct(self[name], bind);
-            continue;
-        }
-        bin.write(bind, self[name]);
-    }
-
-    if (!hadBuffer) return bind.buffer;
-
-    return bind;
-}
-
-export function structAdapt<T extends Record<string, unknown>>(self: unknown) {
-    const clazz = self.constructor;
-
-    if (!(StructSymbol in clazz)) {
-        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
-    }
-
-    const struct = clazz[StructSymbol] as { name: string, bin: Bin | null }[];
-
-    return <T>struct.reduce((obj, {name, bin}) => {
-        if (bin === null) {
-            obj[name] = structAdapt(self[name]);
-            return obj;
-        }
-        obj[name] = bin.adapt(self[name]);
-        return obj;
-    }, {} as Record<string, unknown>);
-}
-
-type StructData = { [key: string]: Bin | StructData };
-
-export function getStructData(self: unknown): StructData {
-    const clazz = self.constructor;
-
-    if (!(StructSymbol in clazz)) {
-        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
-    }
-
-    const struct = clazz[StructSymbol] as { name: string, bin: Bin | null }[];
-
-    return <Record<string, unknown>>struct.reduce((obj, {name, bin}) => {
-        if (bin === null) {
-            obj[name] = getStructData(self[name]);
-            return obj;
-        }
-        obj[name] = bin;
-        return obj;
-    }, {} as Record<string, unknown>);
 }
 
 // noinspection ReservedWordAsName

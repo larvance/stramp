@@ -24,11 +24,15 @@ class Player extends Vec3 {
         return `players/${this.name}.sp`;
     };
 
+    get struct() {
+        return X.getStruct(this);
+    }
+
     constructor(readonly name: string) {
         super();
         if (fs.existsSync(this.file)) {
             try {
-                X.loadStruct(this, fs.readFileSync(this.file));
+                this.struct.parse(fs.readFileSync(this.file), this);
             } catch {
                 console.error(`Failed to load player data for ${name}.sp`);
             }
@@ -36,7 +40,7 @@ class Player extends Vec3 {
     };
 
     save() {
-        fs.writeFileSync(this.file, X.saveStruct(this));
+        fs.writeFileSync(this.file, this.struct.serialize(this));
     };
 }
 

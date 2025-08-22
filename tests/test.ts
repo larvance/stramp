@@ -1,21 +1,34 @@
-import * as X from "../src/Stramp";
+import X, {def} from "../src/Stramp";
 
-class MyNumber {
-    constructor(public readonly value: number) {
-    }
+class Vec3 {
+    @def(X.f32) x = 0;
+    @def(X.f32) y = 0;
+    @def(X.f32) z = 0;
+
+    constructor(x = 0, y = 0, z = 0) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    };
 }
 
-const myStruct = X.u8.highway<MyNumber>(
-    obj => obj.value,
-    val => new MyNumber(val)
-);
+class Player {
+    @def(X.f32) health = 100;
 
-const myInstance = new MyNumber(1);
+    velocity = new Vec3();
 
-const buf = myStruct.serialize(myInstance);
+    constructor(readonly name: string) {
+    };
+}
 
-console.log(buf); // <Buffer 01>
+const player = new Player("hello");
 
-const myInstance2 = myStruct.parse(buf);
+const struct = X.getStruct(player);
 
-console.log(myInstance2); // MyNumber { value: 1 }
+const buffer = struct.serialize(player);
+
+const player2 = new Player("hello2");
+
+struct.parse(buffer, player2);
+
+console.log(player2);
