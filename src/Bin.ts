@@ -9,6 +9,7 @@ import type {ArrayStructBinConstructor} from "./array/ArrayStructBin";
 import type {ArrayBinConstructor} from "./array/ArrayBin";
 import type {ConstantBinConstructor} from "./misc/ConstantBin";
 import {HighwayBinConstructor} from "./misc/HighwayBin";
+import {ObjectBinConstructor} from "./object/ObjectBin";
 
 let _id = 1;
 const bins: Record<number, Bin> = {};
@@ -118,6 +119,10 @@ export abstract class Bin<T = unknown> {
 
     pairMap<K>(keyBin: Bin<K>) {
         return __def.Stramp.map.typed(this, keyBin);
+    };
+
+    pairWithKey<K extends string | number | symbol>(keyBin: Bin<K>) {
+        return <ObjectBinConstructor<Bin<T>>>__def.Stramp.object.keyTyped(keyBin).valueTyped(this);
     };
 
     to<K>(...others: Bin<K>[]) {

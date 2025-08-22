@@ -5,7 +5,7 @@ import IntBaseBin from "../number/base/IntBaseBin";
 import {DefaultLengthBin, DefaultStringBin} from "../Defaults";
 import {StringBin} from "../string/StringBin";
 
-class ObjectBinConstructor<
+export class ObjectBinConstructor<
     VType extends Bin = Bin,
     VObject extends Record<string | number, VType["__TYPE__"]> = Record<string | number, VType["__TYPE__"]>,
     T = VObject

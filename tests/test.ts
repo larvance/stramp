@@ -1,4 +1,4 @@
-import X from "../src/Stramp";
+import * as X from "../src/Stramp";
 
 class MyNumber {
     constructor(public readonly value: number) {
