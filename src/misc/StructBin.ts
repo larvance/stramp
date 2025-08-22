@@ -39,7 +39,7 @@ export class StructBin<T> extends Bin<T> {
         return size;
     };
 
-    findProblem(value: unknown, strict: boolean | undefined): StrampProblem | void {
+    findProblem(value: unknown, strict?: boolean): StrampProblem | void {
         for (const [name, bin] of Object.entries(this.data)) {
             const problem = (bin ?? __def.Stramp.getStruct(value[name])).findProblem(value[name], strict);
             if (problem) return problem.shifted(`${this.name}.${name}`, this);
