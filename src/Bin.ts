@@ -123,9 +123,9 @@ export abstract class Bin<T = unknown> {
     highway<Output>(
         write: (obj: Output) => T,
         read: (obj: T) => Output,
-        name = `Highway<${this.name}>`,
         sample = read(this.sample),
-        adaptor: (v: unknown) => Output = v => v as Output
+        adaptor: (v: unknown) => Output = v => v as Output,
+        name = `Highway<${this.name}>`
     ) {
         return <HighwayBinConstructor<T, Output>>new __def.HighwayBin(this, write, read, name, sample, adaptor);
     };
