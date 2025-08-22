@@ -277,6 +277,7 @@ class Stramp extends Bin {
     saveStruct = saveStruct;
     structSize = structSize;
     structAdapt = structAdapt;
+    getStructData = getStructData;
 }
 
 __def.AnyBin = AnyBinConstructor;
@@ -295,7 +296,6 @@ __def.Stramp = stramp;
 
 export const tuple = stramp.tuple;
 export const StructSymbol = Symbol("StructSymbol");
-export const SubStructSymbol = Symbol("SubStructSymbol");
 
 export function def(desc: object): (_: unknown, context: unknown) => void;
 export function def(desc: object, context: unknown): void;
@@ -303,7 +303,7 @@ export function def(desc: object, context?: unknown) {
     if (typeof context === "string") {
         const struct = desc.constructor[StructSymbol] ??= [];
         if (struct.some((i: { name: string | symbol }) => i.name === context)) return;
-        struct.push({name: context, bin: SubStructSymbol});
+        struct.push({name: context, bin: null});
         return;
     }
 
@@ -319,7 +319,7 @@ export function def(desc: object, context?: unknown) {
         return context.addInitializer(function () {
             const struct = this.constructor[StructSymbol] ??= [];
             if (struct.some((i: { name: string | symbol }) => i.name === context.name)) return;
-            struct.push({name: context.name, bin: SubStructSymbol});
+            struct.push({name: context.name, bin: null});
         });
     }
 
@@ -376,10 +376,10 @@ export function structSize(self: unknown) {
         throw new Error(`${clazz.name} instance is not initialized with a structure.`);
     }
 
-    const struct = clazz[StructSymbol] as { name: string, bin: Bin | typeof SubStructSymbol }[];
+    const struct = clazz[StructSymbol] as { name: string, bin: Bin | null }[];
 
     return struct.reduce((inc, {name, bin}) => {
-        if (bin === SubStructSymbol) return inc + structSize(self[name]);
+        if (bin === null) return inc + structSize(self[name]);
         return inc + bin.getSize(self[name]);
     }, 0);
 }
@@ -393,7 +393,7 @@ export function saveStruct(self: unknown, buffer?: Buffer | BufferIndex): Buffer
         throw new Error(`${clazz.name} instance is not initialized with a structure.`);
     }
 
-    const struct = clazz[StructSymbol] as { name: string, bin: Bin | typeof SubStructSymbol }[];
+    const struct = clazz[StructSymbol] as { name: string, bin: Bin | null }[];
 
     const hadBuffer = !!buffer;
 
@@ -402,7 +402,7 @@ export function saveStruct(self: unknown, buffer?: Buffer | BufferIndex): Buffer
     const bind = isBuffer(buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>(buffer);
 
     for (const {name, bin} of struct) {
-        if (bin === SubStructSymbol) {
+        if (bin === null) {
             saveStruct(self[name], bind);
             continue;
         }
@@ -421,14 +421,35 @@ export function structAdapt<T extends Record<string, unknown>>(self: unknown) {
         throw new Error(`${clazz.name} instance is not initialized with a structure.`);
     }
 
-    const struct = clazz[StructSymbol] as { name: string, bin: Bin | typeof SubStructSymbol }[];
+    const struct = clazz[StructSymbol] as { name: string, bin: Bin | null }[];
 
     return <T>struct.reduce((obj, {name, bin}) => {
-        if (bin === SubStructSymbol) {
+        if (bin === null) {
             obj[name] = structAdapt(self[name]);
             return obj;
         }
         obj[name] = bin.adapt(self[name]);
+        return obj;
+    }, {} as Record<string, unknown>);
+}
+
+type StructData = { [key: string]: Bin | StructData };
+
+export function getStructData(self: unknown): StructData {
+    const clazz = self.constructor;
+
+    if (!(StructSymbol in clazz)) {
+        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
+    }
+
+    const struct = clazz[StructSymbol] as { name: string, bin: Bin | null }[];
+
+    return <Record<string, unknown>>struct.reduce((obj, {name, bin}) => {
+        if (bin === null) {
+            obj[name] = getStructData(self[name]);
+            return obj;
+        }
+        obj[name] = bin;
         return obj;
     }, {} as Record<string, unknown>);
 }
