@@ -190,6 +190,18 @@ class Stramp extends Bin {
         return F64;
     };
 
+    getUnsignedTypeOf(value: number): Bin<number> {
+        if (isNaN(value) || value === Infinity || value === -Infinity || value < 0 || value % 1 !== 0) {
+            throw new Error("Value is not an unsigned integer");
+        }
+        if (value === 0) return <Bin<number>>ZERO;
+        if (value <= 255) return U8;
+        if (value <= 65_535) return U16;
+        if (value <= 4_294_967_295) return U32;
+
+        throw new Error("Value is too large to be represented as an unsigned 32-bit integer");
+    };
+
     getTypeOf<T>(value: T): Bin<T> | null;
 
     getTypeOf(value: unknown): Bin {
