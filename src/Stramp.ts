@@ -58,6 +58,7 @@ import {AnyValueBinConstructor} from "./any/AnyValueBin";
 import {DefaultsToBin} from "./misc/DefaultsToBin";
 import {Big0} from "./Utils";
 import {ArrayStructBinConstructor} from "./array/ArrayStructBin";
+import {Buffer} from "buffer";
 
 class Stramp extends Bin {
     name = "any";
@@ -162,9 +163,9 @@ class Stramp extends Bin {
         if (value === 0) return <Bin<number>>ZERO;
         if (value % 1 === 0) {
             if (value >= 0) {
-                if (value <= 127) return U8;
-                if (value <= 32_767) return U16;
-                if (value <= 2_147_483_647) return U32;
+                if (value <= 255) return U8;
+                if (value <= 65_535) return U16;
+                if (value <= 4_294_967_295) return U32;
             } else {
                 if (value >= -128) return I8;
                 if (value >= -32_768) return I16;
@@ -327,7 +328,7 @@ export function loadStruct(self: unknown, buffer: Buffer | BufferIndex) {
         throw new Error(`${clazz.name} instance is not initialized with a structure.`);
     }
 
-    const bind = buffer instanceof Buffer ? new BufferIndex(buffer, 0) : <BufferIndex>buffer;
+    const bind = (buffer instanceof Buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>buffer;
 
     const struct = clazz[StructSymbol] as { name: string, bin: Bin }[];
 
@@ -368,7 +369,8 @@ export function saveStruct(self: unknown, buffer?: Buffer | BufferIndex): Buffer
 
     buffer ||= BufferIndex.alloc(structSize(self));
 
-    const bind = buffer instanceof Buffer ? new BufferIndex(buffer, 0) : <BufferIndex>(buffer);
+    console.log(buffer, Buffer)
+    const bind = (buffer instanceof Buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>(buffer);
 
     for (const {name, bin} of struct) {
         if (bin === SubStructSymbol) {
