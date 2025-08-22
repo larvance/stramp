@@ -253,6 +253,7 @@ class Stramp extends Bin {
     loadStruct = loadStruct;
     saveStruct = saveStruct;
     structSize = structSize;
+    structAdapt = structAdapt;
 }
 
 __def.AnyBin = AnyBinConstructor;
@@ -388,6 +389,25 @@ export function saveStruct(self: unknown, buffer?: Buffer | BufferIndex): Buffer
     if (!hadBuffer) return bind.buffer;
 
     return bind;
+}
+
+export function structAdapt<T extends Record<string, unknown>>(self: unknown) {
+    const clazz = self.constructor;
+
+    if (!(StructSymbol in clazz)) {
+        throw new Error(`${clazz.name} instance is not initialized with a structure.`);
+    }
+
+    const struct = clazz[StructSymbol] as { name: string, bin: Bin | typeof SubStructSymbol }[];
+
+    return <T>struct.reduce((obj, {name, bin}) => {
+        if (bin === SubStructSymbol) {
+            obj[name] = structAdapt(self[name]);
+            return obj;
+        }
+        obj[name] = bin.adapt(self[name]);
+        return obj;
+    }, {} as Record<string, unknown>);
 }
 
 // noinspection ReservedWordAsName
