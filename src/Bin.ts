@@ -8,6 +8,7 @@ import type Stramp from "./Stramp";
 import type {ArrayStructBinConstructor} from "./array/ArrayStructBin";
 import type {ArrayBinConstructor} from "./array/ArrayBin";
 import type {ConstantBinConstructor} from "./misc/ConstantBin";
+import {HighwayBinConstructor} from "./misc/HighwayBin";
 
 let _id = 1;
 const bins: Record<number, Bin> = {};
@@ -21,6 +22,7 @@ export const __def = <{
     AnyBin: typeof AnyBinConstructor,
     DefaultsToBin: typeof DefaultsToBin,
     ConstantBin: ConstantBinConstructor<"constant">,
+    HighwayBin: typeof HighwayBinConstructor,
     ArrayBin: ArrayBinConstructor<"array">,
     ArrayStructBin: typeof ArrayStructBinConstructor,
     UndefinedBin: typeof UndefinedBin,
@@ -116,5 +118,15 @@ export abstract class Bin<T = unknown> {
 
     to<K>(...others: Bin<K>[]) {
         return __def.Stramp.array.struct([this, ...others] as const)
+    };
+
+    highway<Output>(
+        input: (obj: Output) => T,
+        output: (obj: T) => Output,
+        name = `Highway<${this.name}>`,
+        sample = output(this.sample),
+        adaptor: (v: unknown) => Output = v => v as Output
+    ) {
+        return <HighwayBinConstructor<T, Output>>new __def.HighwayBin(this, input, output, name, sample, adaptor);
     };
 }

@@ -2,7 +2,7 @@ import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import {OptionalBin} from "../OptionalBin";
 
-export class HighwayBin<Input, Output> extends Bin<Output> {
+export class HighwayBinConstructor<Input, Output> extends Bin<Output> {
     constructor(
         public bin: Bin<Input>,
         public input: (obj: Output) => Input,
@@ -34,5 +34,3 @@ export class HighwayBin<Input, Output> extends Bin<Output> {
         return this.output(this.bin.adapt(this.input(this.adaptor(value))));
     };
 }
-
-export default new HighwayBin<null, null>(<Bin<null>>null, r => r, r => r);

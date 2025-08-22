@@ -54,6 +54,7 @@ import BigIntBaseBin from "./number/base/BigIntBaseBin";
 import ObjectStructBin from "./object/ObjectStructBin";
 import NUMBER from "./number/NumberBin";
 import CONSTANT, {ConstantBinConstructor} from "./misc/ConstantBin";
+import {HighwayBinConstructor} from "./misc/HighwayBin";
 import {AnyValueBinConstructor} from "./any/AnyValueBin";
 import {DefaultsToBin} from "./misc/DefaultsToBin";
 import {Big0} from "./Utils";
@@ -257,6 +258,7 @@ class Stramp extends Bin {
 __def.AnyBin = AnyBinConstructor;
 __def.DefaultsToBin = DefaultsToBin;
 __def.ConstantBin = CONSTANT;
+__def.HighwayBin = HighwayBinConstructor;
 __def.ArrayBin = ARRAY;
 __def.ArrayStructBin = ArrayStructBinConstructor
 __def.UndefinedBin = UNDEFINED;

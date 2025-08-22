@@ -13,21 +13,21 @@ npm install stramp
 I will be importing the library as `X` in the examples below.
 
 ```js
-import X from "stramp";
+import X from "stramp"
 ```
 
 # Example usage
 
 ```js
-const myValue = 5716282;
+const myValue = 5716282
 
-const buffer = X.serialize(myValue);
+const buffer = X.serialize(myValue)
 
-console.log(buffer); // <Buffer 0a 3a 39 57 00>
+console.log(buffer) // <Buffer 0a 3a 39 57 00>
 
-const restoredValue = X.deserialize(buffer);
+const restoredValue = X.parse(buffer)
 
-console.log(restoredValue); // 5716282
+console.log(restoredValue) // 5716282
 ```
 
 ## What is a Stramp Bin?
@@ -110,16 +110,16 @@ const obj = {
     favoriteNumber: 3.14159,
     favoriteMathConstant: Math.PI,
     favoriteArray: [1, "Apple Pie", true, null, undefined, 258724n, 3.14159, Math.PI]
-};
+}
 
-const buffer = X.serialize(obj);
+const buffer = X.serialize(obj)
 
-console.log(buffer); // <Buffer 2c 0c 04 6e 61 6d 65 29 08 4a 6f 68 6e 20 44 ... 308 more bytes>
+console.log(buffer) // <Buffer 2c 0c 04 6e 61 6d 65 29 08 4a 6f 68 6e 20 44 ... 308 more bytes>
 // This saved us 67 bytes compared to JSON! (Will save more than 3 times when using structs)
 
-const restoredObj = X.deserialize(buffer);
+const restoredObj = X.parse(buffer)
 
-console.log(restoredObj); // Will have the same values as obj
+console.log(restoredObj) // Will have the same values as obj
 ```
 
 ## Universal Bin Operations
@@ -127,18 +127,18 @@ console.log(restoredObj); // Will have the same values as obj
 You can use the following operations on any Bin:
 
 ```js
-const A = X.u8; // or any other Bin
-const B = X.string8; // or any other Bin
+const A = X.u8 // or any other Bin
+const B = X.string8 // or any other Bin
 
-const AorB = X.any.of(A, B); // Creates a Bin that can hold either u8 or string8
-AorB.serialize("hello!");
-AorB.serialize(10);
+const AorB = X.any.of(A, B) // Creates a Bin that can hold either u8 or string8
+AorB.serialize("hello!")
+AorB.serialize(10)
 
-const defaultedU8 = A.default(0); // Creates a Bin that defaults to 0 if the value is undefined
+const defaultedU8 = A.default(0) // Creates a Bin that defaults to 0 if the value is undefined
 const usefulObject = X.object.struct({
     myNumber: X.u8.default(0)
-});
-const buf = usefulObject.serialize({}); // This works!
+})
+const buf = usefulObject.serialize({}) // This works!
 ```
 
 ## Array Bin
@@ -150,75 +150,75 @@ The default array can hold any amount of anything.
 Example:
 
 ```js
-const myArray = [1, "Apple Pie", true, null, undefined, 258724n, 3.14159, Math.PI];
+const myArray = [1, "Apple Pie", true, null, undefined, 258724n, 3.14159, Math.PI]
 
-const buffer = X.serialize(myArray);
+const buffer = X.serialize(myArray)
 
 // First byte indicates that it's an array
 // 2-5 bytes indicate the length of the array as a u32
 // The rest of the bytes are the array's values with their types as a single byte in front
-console.log(buffer); // <Buffer 17 08 00 00 00 0c 01 29 09 41 70 70 6c 65 20 50 69 65 14 10 11 09 a4 f2 03 00 00 00 00 00 03 6e 86 1b f0 f9 21 09 40 03 18 2d 44 54 fb 21 09 40>
+console.log(buffer) // <Buffer 17 08 00 00 00 0c 01 29 09 41 70 70 6c 65 20 50 69 65 14 10 11 09 a4 f2 03 00 00 00 00 00 03 6e 86 1b f0 f9 21 09 40 03 18 2d 44 54 fb 21 09 40>
 
-const restoredArray = X.deserialize(buffer);
+const restoredArray = X.parse(buffer)
 
-console.log(restoredArray); // Will have the same values as myArray
+console.log(restoredArray) // Will have the same values as myArray
 ```
 
 ### Typed dynamic sized arrays
 
 ```js
-const myType = X.array.typed(X.u8);
+const myType = X.array.typed(X.u8)
 
-const myArray = [5, 3, 1, 2, 4];
+const myArray = [5, 3, 1, 2, 4]
 
-const buffer = myType.serialize(myArray);
+const buffer = myType.serialize(myArray)
 
 // First 4 bytes are the size of the array as a u32
 // The rest of the bytes are the array's values
-console.log(buffer); // <Buffer 05 00 00 00 05 03 01 02 04>
+console.log(buffer) // <Buffer 05 00 00 00 05 03 01 02 04>
 
-const restoredArray = myType.parse(buffer);
+const restoredArray = myType.parse(buffer)
 
-console.log(restoredArray); // [5, 3, 1, 2, 4]
+console.log(restoredArray) // [5, 3, 1, 2, 4]
 
 // You can change the array's length's bytes using this:
-const myNewType = myType.lengthBytes(X.u8); // Uses 1 byte for the length
+const myNewType = myType.lengthBytes(X.u8) // Uses 1 byte for the length
 ```
 
 ### Single typed fixed sized arrays
 
 ```js
-const myType = X.array.typed(X.u8).sized(5);
+const myType = X.array.typed(X.u8).sized(5)
 
-const myArray = [5, 3, 1, 2, 4];
+const myArray = [5, 3, 1, 2, 4]
 
-const buffer = myType.serialize(myArray);
+const buffer = myType.serialize(myArray)
 
-console.log(buffer); // <Buffer 05 03 01 02 04>
+console.log(buffer) // <Buffer 05 03 01 02 04>
 
-const restoredArray = myType.parse(buffer);
+const restoredArray = myType.parse(buffer)
 
-console.log(restoredArray); // [5, 3, 1, 2, 4]
+console.log(restoredArray) // [5, 3, 1, 2, 4]
 ```
 
 ### Array structs
 
 ```js
-const myStruct = X.array.struct([X.u8, X.string8, X.null]);
+const myStruct = X.array.struct([X.u8, X.string8, X.null])
 
-const myArray = [5, "Hello", null];
+const myArray = [5, "Hello", null]
 
-const buffer = myStruct.serialize(myArray);
+const buffer = myStruct.serialize(myArray)
 
 // 1st byte: The first element in the array
 // 2nd byte: Length of the string
 // 3-7th bytes: The string
 // Notice that it doesn't store the null, because it already knows it has to be there.
-console.log(buffer); // <Buffer 05 05 48 65 6c 6c 6f>
+console.log(buffer) // <Buffer 05 05 48 65 6c 6c 6f>
 
-const restoredArray = myStruct.deserialize(buffer);
+const restoredArray = myStruct.parse(buffer)
 
-console.log(restoredArray); // [5, "Hello", null]
+console.log(restoredArray) // [5, "Hello", null]
 ```
 
 ## Object Bin
@@ -230,37 +230,37 @@ const myObject = {
     name: "John Doe",
     age: 30,
     ageBig: 30n
-};
+}
 
-const buffer = X.serialize(myObject);
+const buffer = X.serialize(myObject)
 
-console.log(buffer); // <Buffer 2c 03 00 00 00 04 00 00 00 6e 61 6d 65 29 08 4a 6f 68 6e 20 44 6f 65 03 00 00 00 61 67 65 0c 1e 06 00 00 00 61 67 65 42 69 67 0c 1e>
+console.log(buffer) // <Buffer 2c 03 00 00 00 04 00 00 00 6e 61 6d 65 29 08 4a 6f 68 6e 20 44 6f 65 03 00 00 00 61 67 65 0c 1e 06 00 00 00 61 67 65 42 69 67 0c 1e>
 
-const restoredObject = X.deserialize(buffer);
+const restoredObject = X.parse(buffer)
 
-console.log(restoredObject); // Will have the same values as myObject
+console.log(restoredObject) // Will have the same values as myObject
 ```
 
 ### Typed dynamic sized objects
 
 ```js
 // Note that the keyTyped only accepts a string bin
-const myType = X.object.keyTyped(X.string8).valueTyped(X.u8);
+const myType = X.object.keyTyped(X.string8).valueTyped(X.u8)
 
 const myObject = {
     a: 10,
     b: 20,
     c: 30
-};
+}
 
-const buffer = myType.serialize(myObject);
+const buffer = myType.serialize(myObject)
 
 // The first 4 bytes are the size of the object, you can change it like this:  .lengthBytes(X.u8)
-console.log(buffer); // <Buffer 03 00 00 00 01 61 0a 01 62 14 01 63 1e>
+console.log(buffer) // <Buffer 03 00 00 00 01 61 0a 01 62 14 01 63 1e>
 
-const restoredObject = myType.parse(buffer);
+const restoredObject = myType.parse(buffer)
 
-console.log(restoredObject); // Will have the same values as myObject
+console.log(restoredObject) // Will have the same values as myObject
 ```
 
 ### Object structs
@@ -270,27 +270,27 @@ const myType = X.object.struct({
     age: X.u8,
     name: X.string8,
     numbers: X.array.typed(X.u8).sized(5)
-});
+})
 
 const myObject = {
     age: 30,
     name: "John Doe",
     numbers: [1, 2, 3, 4, 5]
-};
+}
 
-const buffer = myType.serialize(myObject);
+const buffer = myType.serialize(myObject)
 
 // First byte is the age
 // Second byte is the length of the name
 // 3-7th bytes is the name
 // 8-12th bytes are the numbers array
-console.log(buffer); // <Buffer 1e 08 4a 6f 68 6e 20 44 6f 65 01 02 03 04 05>
+console.log(buffer) // <Buffer 1e 08 4a 6f 68 6e 20 44 6f 65 01 02 03 04 05>
 // This drops 50 bytes of JSON down to 15 bytes!
 // Meaning 1000 of this object would gain you THIRTY FIVE THOUSAND BYTES!
 
-const restoredObject = myType.parse(buffer);
+const restoredObject = myType.parse(buffer)
 
-console.log(restoredObject); // Will have the same values as myObject
+console.log(restoredObject) // Will have the same values as myObject
 ```
 
 ## Using classes
@@ -299,22 +299,22 @@ The simple way:
 
 ```js
 class Vector {
-    x = 0.1;
-    y = 0.1;
+    x = 0.1
+    y = 0.1
 }
 
-X.class.add(Vector);
+X.class.add(Vector)
 
-const myVector = new Vector();
+const myVector = new Vector()
 
-const buffer = X.serialize(myVector);
+const buffer = X.serialize(myVector)
 
-console.log(buffer); // <Buffer 2f 00 02 00 00 00 01 00 00 00 78 03 9a 99 99 99 99 99 b9 3f 01 00 00 00 79 03 9a 99 99 99 99 99 b9 3f>
+console.log(buffer) // <Buffer 2f 00 02 00 00 00 01 00 00 00 78 03 9a 99 99 99 99 99 b9 3f 01 00 00 00 79 03 9a 99 99 99 99 99 b9 3f>
 // The result is too long though as it doesn't know the types of the properties.
 
-const restoredVector = X.deserialize(buffer);
+const restoredVector = X.parse(buffer)
 
-console.log(restoredVector); // Will have the same values as myVector
+console.log(restoredVector) // Will have the same values as myVector
 ```
 
 The memory-efficient way:
@@ -322,25 +322,52 @@ The memory-efficient way:
 ```js
 class Vector {
     constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    };
+        this.x = x
+        this.y = y
+    }
 }
 
 const VectorType = X.object
     .struct({x: X.f64, y: X.f64})
-    .withConstructor(obj => new Vector(obj.x, obj.y));
+    .withConstructor(obj => new Vector(obj.x, obj.y))
 
-const myVector = new Vector(6346.5213, 5123.1236);
+const myVector = new Vector(6346.5213, 5123.1236)
 
-const buffer = VectorType.serialize(myVector);
+const buffer = VectorType.serialize(myVector)
 
-console.log(buffer); // <Buffer 68 b3 ea 73 85 ca b8 40 c9 e5 3f a4 1f 03 b4 40>
+console.log(buffer) // <Buffer 68 b3 ea 73 85 ca b8 40 c9 e5 3f a4 1f 03 b4 40>
 // This small change of using a struct reduces the byte size to only 16 bytes! (8 bytes per number because f64 has 64 bits)
 
-const restoredVector = VectorType.parse(buffer);
+const restoredVector = VectorType.parse(buffer)
 
-console.log(restoredVector); // Vector { x: 6346.5213, y: 5123.1236 }
+console.log(restoredVector) // Vector { x: 6346.5213, y: 5123.1236 }
+```
+
+## Highway Constructs
+
+Highway Constructs are a way to build on top of existing Bins to make abstract data types. Here's an example:
+
+```ts
+class MyNumber {
+    constructor(value) {
+        this.value = value
+    }
+}
+
+const myStruct = X.u8.highway(
+    obj => obj.value,
+    val => new MyNumber(val)
+)
+
+const myInstance = new MyNumber(1)
+
+const buf = myStruct.serialize(myInstance)
+
+console.log(buf) // <Buffer 01>
+
+const myInstance2 = myStruct.parse(buf)
+
+console.log(myInstance2) // MyNumber { value: 1 }
 ```
 
 ## TypeScript support
@@ -350,11 +377,11 @@ Every Bin is perfectly typed, so you can use them in TypeScript without any issu
 To get the type a Bin is holding, you can use `infer`.
 
 ```ts
-import * as X from "stramp";
+import * as X from "stramp"
 
-const myBin = X.u8;
+const myBin = X.u8
 
-type MyType = X.infer<typeof myBin>; // MyType will be 'number'
+type MyType = X.infer<typeof myBin> // MyType will be 'number'
 ```
 
 ## With Modern Decorators
@@ -366,35 +393,35 @@ Only the properties that have been decorated with `@def` will be saved and loade
 This is useful for defining the structure of your data without having to create a separate Bin for it.
 
 ```ts
-import X from "stramp";
+import X from "stramp"
 
 class MyStruct {
-    @X.def(X.u8) a = 155;
+    @X.def(X.u8) a = 155
 
-    b: number; // This is not a part of the structure, so it won't be saved/loaded.
+    b: number // This is not a part of the structure, so it won't be saved/loaded.
 
     constructor(b = 10) {
-        this.b = b;
-    };
+        this.b = b
+    }
 
     log() {
-        console.log(this.a * this.b);
-    };
+        console.log(this.a * this.b)
+    }
 }
 
-const struct1 = new MyStruct();
+const struct1 = new MyStruct()
 
-const buffer = X.saveStruct(struct1);
+const buffer = X.saveStruct(struct1)
 
-console.log(buffer);
+console.log(buffer)
 
-const struct2 = new MyStruct();
+const struct2 = new MyStruct()
 
-X.loadStruct(struct2, buffer);
+X.loadStruct(struct2, buffer)
 
-console.log(struct2);
+console.log(struct2)
 
-struct2.log();
+struct2.log()
 ```
 
 ## The limitations
@@ -416,14 +443,14 @@ class C {
 
 // Note that the order is important
 // If you were to serialize it, change the order of these values,
-// the deserialized value will be different and may even be corrupted
-const myBin = X.any.ofValues(A, B, C);
+// the parsed value will be different and may even be corrupted
+const myBin = X.any.ofValues(A, B, C)
 
-const buffer = myBin.serialize(A); // <Buffer 00>
+const buffer = myBin.serialize(A) // <Buffer 00>
 
-const restoredValue = myBin.deserialize(buffer); // A
+const restoredValue = myBin.parse(buffer) // A
 
-console.log(restoredValue === A); // true
+console.log(restoredValue === A) // true
 ```
 
 ## ZSTD compression implementation
@@ -434,44 +461,44 @@ notating whether it's compressed or not because ZSTD requires about 100 bytes to
 The code is implemented in such way so that it works for both web and node.js.
 
 ```ts
-import {ZstdInit, ZstdSimple} from "@oneidentity/zstd-js";
-import {Buffer} from "buffer"; // npm library that allows buffer api for web
+import {ZstdInit, ZstdSimple} from "@oneidentity/zstd-js"
+import {Buffer} from "buffer" // npm library that allows buffer api for web
 
-await ZstdInit();
+await ZstdInit()
 
 export function allocBuffer(size: number, safe = true) {
-    const buffer = safe ? Buffer.alloc(size) : Buffer.allocUnsafe(size);
-    buffer._isBuffer = true;
-    return buffer;
+    const buffer = safe ? Buffer.alloc(size) : Buffer.allocUnsafe(size)
+    buffer._isBuffer = true
+    return buffer
 }
 
 export function copyBuffer(buffer: Buffer | Uint8Array | number[]) {
-    const newBuffer = Buffer.from(buffer);
-    newBuffer._isBuffer = true;
-    return newBuffer;
+    const newBuffer = Buffer.from(buffer)
+    newBuffer._isBuffer = true
+    return newBuffer
 }
 
 export function zstdOptionalEncode(buffer: Buffer) {
     if (buffer.length > 100) {
-        const compressed = ZstdSimple.compress(buffer);
-        const buffer2 = allocBuffer(compressed.length + 1);
-        buffer2[0] = 1;
-        buffer2.set(compressed, 1);
-        return buffer2;
+        const compressed = ZstdSimple.compress(buffer)
+        const buffer2 = allocBuffer(compressed.length + 1)
+        buffer2[0] = 1
+        buffer2.set(compressed, 1)
+        return buffer2
     }
 
-    const buffer2 = allocBuffer(buffer.length + 1);
-    buffer2[0] = 0; // just to be safe
-    buffer.copy(buffer2, 1);
-    return buffer2;
+    const buffer2 = allocBuffer(buffer.length + 1)
+    buffer2[0] = 0 // just to be safe
+    buffer.copy(buffer2, 1)
+    return buffer2
 }
 
 export function zstdOptionalDecode(buffer: Buffer) {
-    const sliced = allocBuffer(buffer.length - 1);
-    buffer.copy(sliced, 0, 1);
+    const sliced = allocBuffer(buffer.length - 1)
+    buffer.copy(sliced, 0, 1)
 
-    if (buffer[0] === 1) return copyBuffer(ZstdSimple.decompress(sliced));
+    if (buffer[0] === 1) return copyBuffer(ZstdSimple.decompress(sliced))
 
-    return sliced;
+    return sliced
 }
 ```
