@@ -106,6 +106,10 @@ export abstract class Bin<T = unknown> {
         return this.or(__def.ConstantBin.new(value));
     };
 
+    nullable() {
+        return __def.NullBin.or(this);
+    };
+
     array(size?: number) {
         let bin = __def.ArrayBin.of(this);
         if (typeof size === "number") bin = bin.sized(size);
