@@ -321,6 +321,10 @@ export function def(desc: object, context?: unknown) {
     };
 }
 
+function isBuffer(buffer: unknown): buffer is Buffer {
+    return buffer instanceof Buffer || "_isBuffer" in Buffer;
+}
+
 export function loadStruct(self: unknown, buffer: Buffer | BufferIndex) {
     const clazz = self.constructor;
 
@@ -328,7 +332,7 @@ export function loadStruct(self: unknown, buffer: Buffer | BufferIndex) {
         throw new Error(`${clazz.name} instance is not initialized with a structure.`);
     }
 
-    const bind = (buffer instanceof Buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>buffer;
+    const bind = isBuffer(buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>buffer;
 
     const struct = clazz[StructSymbol] as { name: string, bin: Bin }[];
 
@@ -369,8 +373,7 @@ export function saveStruct(self: unknown, buffer?: Buffer | BufferIndex): Buffer
 
     buffer ||= BufferIndex.alloc(structSize(self));
 
-    console.log(buffer, Buffer)
-    const bind = (buffer instanceof Buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>(buffer);
+    const bind = isBuffer(buffer) ? new BufferIndex(buffer, 0) : <BufferIndex>(buffer);
 
     for (const {name, bin} of struct) {
         if (bin === SubStructSymbol) {
