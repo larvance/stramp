@@ -304,11 +304,15 @@ __def.Stramp = stramp;
 export const tuple = stramp.tuple;
 export const StructSymbol = Symbol("StructSymbol");
 
+function structSetter(clazz: object, key: string | symbol, val: object) {
+    (clazz.hasOwnProperty(StructSymbol) ? clazz[StructSymbol] : (clazz[StructSymbol] = {}))[key] = val;
+}
+
 export function def(desc: object): (_: unknown, context: unknown) => void;
 export function def(desc: object, context: unknown): void;
 export function def(desc: object, context?: unknown) {
-    if (typeof context === "string") {
-        (desc.constructor[StructSymbol] ??= {})[context] ??= null;
+    if (typeof context === "string" || typeof context === "symbol") {
+        structSetter(desc.constructor, context, desc);
         return;
     }
 
@@ -322,7 +326,7 @@ export function def(desc: object, context?: unknown) {
         && typeof context.addInitializer === "function"
     ) {
         return context.addInitializer(function () {
-            ((<object>this).constructor[StructSymbol] ??= {})[context.name] ??= null;
+            structSetter(this.constructor, <string>context.name, desc);
         });
     }
 
@@ -330,12 +334,12 @@ export function def(desc: object, context?: unknown) {
         name: string | symbol;
         addInitializer(init: Function): void;
     } | string): void {
-        if (typeof context === "string") {
-            (slf.constructor[StructSymbol] ??= {})[context] ??= desc;
+        if (typeof context === "string" || typeof context === "symbol") {
+            structSetter(slf.constructor, context, desc);
             return;
         }
         context.addInitializer(function () {
-            ((<object>this).constructor[StructSymbol] ??= {})[context.name] ??= desc;
+            structSetter(this.constructor, context.name, desc);
         });
     };
 }

@@ -6,7 +6,7 @@ export class StructBin<T> extends Bin<T> {
     name: string;
     sample = null;
 
-    constructor(public self: object, public data: Record<string, Bin | null>) {
+    constructor(self: object, public data: Record<string, Bin | null>) {
         super();
         this.name = self.constructor.name;
     };
@@ -49,7 +49,7 @@ export class StructBin<T> extends Bin<T> {
     adapt(value: T): T {
         const adapted: Partial<T> = {};
         for (const [name, bin] of Object.entries(this.data)) {
-            adapted[name] = (bin ?? __def.Stramp.getStruct(this.self[name])).adapt(value[name]);
+            adapted[name] = (bin ?? __def.Stramp.getStruct(value[name])).adapt(value[name]);
         }
         return adapted as T;
     };
