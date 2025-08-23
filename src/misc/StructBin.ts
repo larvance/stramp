@@ -1,6 +1,7 @@
 import {__def, Bin} from "../Bin";
 import {StrampProblem} from "../StrampProblem";
 import {BufferIndex} from "../BufferIndex";
+import {StructSymbol} from "../Stramp";
 
 export class StructBin<T> extends Bin<T> {
     name: string;
@@ -9,6 +10,14 @@ export class StructBin<T> extends Bin<T> {
     constructor(self: object, public data: Record<string, Bin | null>) {
         super();
         this.name = self.constructor.name;
+
+        for (const [name, bin] of Object.entries(this.data)) {
+            if (!bin && !(StructSymbol in self[name])) {
+                throw new Error(
+                    `Class struct field @def ${name} was initialized, but no value with a @def was provided for "${name}".`
+                );
+            }
+        }
     };
 
     unsafeWrite(bind: BufferIndex, value: Readonly<T> | T): void {

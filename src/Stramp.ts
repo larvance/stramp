@@ -312,7 +312,7 @@ export function def(desc: object): (_: unknown, context: unknown) => void;
 export function def(desc: object, context: unknown): void;
 export function def(desc: object, context?: unknown) {
     if (typeof context === "string" || typeof context === "symbol") {
-        structSetter(desc.constructor, context, desc);
+        structSetter(desc.constructor, context, null);
         return;
     }
 
@@ -326,7 +326,7 @@ export function def(desc: object, context?: unknown) {
         && typeof context.addInitializer === "function"
     ) {
         return context.addInitializer(function () {
-            structSetter(this.constructor, <string>context.name, desc);
+            structSetter(this.constructor, <string>context.name, null);
         });
     }
 
