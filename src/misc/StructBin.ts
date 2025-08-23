@@ -12,7 +12,7 @@ export class StructBin<T> extends Bin<T> {
         this.name = self.constructor.name;
 
         for (const [name, bin] of Object.entries(this.data)) {
-            if (!bin && !(StructSymbol in self[name])) {
+            if (!bin && (!self[name] || typeof self[name] !== "object" || !self[name].hasOwnProperty(StructSymbol))) {
                 throw new Error(
                     `Class struct field @def ${name} was initialized, but no value with a @def was provided for "${name}".`
                 );
