@@ -8,15 +8,15 @@ export class StructBin<T> extends Bin<T> {
     sample = null;
     data: [string, Bin | null][];
 
-    constructor(self: object, raw: Record<string, Bin | null>) {
+    constructor(self: object, name: string, raw: Record<string, Bin | null>) {
         super();
-        this.name = self.constructor.name;
+        this.name = name;
         this.data = Object.entries(raw).sort((a, b) => a[0].localeCompare(b[0]));
 
         for (const [name, bin] of this.data) {
             if (!bin && (!self[name] || typeof self[name] !== "object" || !self[name].hasOwnProperty(StructSymbol))) {
                 throw new Error(
-                    `Class struct field @def ${name} was initialized, but no value with a @def was provided for "${name}".`
+                    `Class struct field @def ${name} was initialized, but no value with a @def was provided for "${name}" in ${this.name}.`
                 );
             }
         }

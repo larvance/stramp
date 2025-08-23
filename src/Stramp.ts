@@ -273,9 +273,7 @@ class Stramp extends Bin {
         return base;
     };
 
-    getStruct<T extends object>(self: T) {
-        const clazz = self.constructor;
-
+    getStruct<T extends object>(self: T, clazz = self.constructor) {
         if (!(StructSymbol in clazz)) {
             throw new Error(`${clazz.name} instance is not initialized with a structure.`);
         }
@@ -286,14 +284,15 @@ class Stramp extends Bin {
         if (clazz[StructLegacyDecoratorSymbol]) {
             // Because it's legacy it won't retrieve the parent classes' defs.
             const parent = Object.getPrototypeOf(clazz);
-            if (parent) {
-                const parentStruct = this.getStruct(parent);
+            if (typeof parent === "function" && parent.hasOwnProperty(StructSymbol)) {
+                const parentStruct = this.getStruct(self, parent);
                 for (const [name, bin] of parentStruct.data) {
                     if (!data.hasOwnProperty(name)) data[name] = bin;
                 }
             }
         }
-        return clazz[StructSymbol] = new StructBin<T>(self, <Record<string, Bin>>data);
+
+        return clazz[StructSymbol] = new StructBin<T>(self, clazz.name, <Record<string, Bin>>data);
     };
 
     def = def;
