@@ -283,6 +283,16 @@ class Stramp extends Bin {
         const data = clazz[StructSymbol];
 
         if (data instanceof StructBin) return <StructBin<T>>data;
+        if (clazz[StructLegacyDecoratorSymbol]) {
+            // Because it's legacy it won't retrieve the parent classes' defs.
+            const parent = Object.getPrototypeOf(clazz);
+            if (parent) {
+                const parentStruct = this.getStruct(parent);
+                for (const [name, bin] of parentStruct.data) {
+                    if (!data.hasOwnProperty(name)) data[name] = bin;
+                }
+            }
+        }
         return clazz[StructSymbol] = new StructBin<T>(self, <Record<string, Bin>>data);
     };
 
@@ -306,6 +316,7 @@ __def.Stramp = stramp;
 
 export const tuple = stramp.tuple;
 export const StructSymbol = Symbol("StructSymbol");
+export const StructLegacyDecoratorSymbol = Symbol("StructLegacyDecoratorSymbol");
 
 function structSetter(clazz: object, key: string | symbol, val: object) {
     if (val !== null && !(val instanceof Bin)) {
@@ -318,6 +329,7 @@ export function def(desc: object): (_: unknown, context: unknown) => void;
 export function def(desc: object, context: unknown): void;
 export function def(desc: object, context?: unknown) {
     if (typeof context === "string" || typeof context === "symbol") {
+        desc.constructor[StructLegacyDecoratorSymbol] = true;
         structSetter(desc.constructor, context, null);
         return;
     }
@@ -341,6 +353,7 @@ export function def(desc: object, context?: unknown) {
         addInitializer(init: Function): void;
     } | string): void {
         if (typeof context === "string" || typeof context === "symbol") {
+            slf.constructor[StructLegacyDecoratorSymbol] = true;
             structSetter(slf.constructor, context, desc);
             return;
         }
