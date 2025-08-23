@@ -308,6 +308,9 @@ export const tuple = stramp.tuple;
 export const StructSymbol = Symbol("StructSymbol");
 
 function structSetter(clazz: object, key: string | symbol, val: object) {
+    if (val !== null && !(val instanceof Bin)) {
+        throw new Error(`@def can only be used with instances of Bin, got ${typeof val} for key ${key.toString()}`);
+    }
     (clazz.hasOwnProperty(StructSymbol) ? clazz[StructSymbol] : (clazz[StructSymbol] = {}))[key] = val;
 }
 

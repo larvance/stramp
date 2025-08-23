@@ -6,12 +6,14 @@ import {StructSymbol} from "../Stramp";
 export class StructBin<T> extends Bin<T> {
     name: string;
     sample = null;
+    data: [string, Bin | null][];
 
-    constructor(self: object, public data: Record<string, Bin | null>) {
+    constructor(self: object, raw: Record<string, Bin | null>) {
         super();
         this.name = self.constructor.name;
+        this.data = Object.entries(raw).sort((a, b) => a[0].localeCompare(b[0]));
 
-        for (const [name, bin] of Object.entries(this.data)) {
+        for (const [name, bin] of this.data) {
             if (!bin && (!self[name] || typeof self[name] !== "object" || !self[name].hasOwnProperty(StructSymbol))) {
                 throw new Error(
                     `Class struct field @def ${name} was initialized, but no value with a @def was provided for "${name}".`
@@ -21,7 +23,7 @@ export class StructBin<T> extends Bin<T> {
     };
 
     unsafeWrite(bind: BufferIndex, value: Readonly<T> | T): void {
-        for (const [name, bin] of Object.entries(this.data)) {
+        for (const [name, bin] of this.data) {
             (bin ?? __def.Stramp.getStruct(value[name])).unsafeWrite(bind, value[name]);
         }
     };
@@ -29,7 +31,7 @@ export class StructBin<T> extends Bin<T> {
     read(bind: BufferIndex, base: T): T {
         if (!base) throw this.makeProblem("Expected a base when reading.");
 
-        for (const [name, bin] of Object.entries(this.data)) {
+        for (const [name, bin] of this.data) {
             if (bin === null) {
                 __def.Stramp.getStruct(base[name]).read(bind, base[name]);
                 continue;
@@ -42,14 +44,14 @@ export class StructBin<T> extends Bin<T> {
 
     unsafeSize(value: Readonly<T> | T): number {
         let size = 0;
-        for (const [name, bin] of Object.entries(this.data)) {
+        for (const [name, bin] of this.data) {
             size += (bin ?? __def.Stramp.getStruct(value[name])).unsafeSize(value[name]);
         }
         return size;
     };
 
     findProblem(value: unknown, strict?: boolean): StrampProblem | void {
-        for (const [name, bin] of Object.entries(this.data)) {
+        for (const [name, bin] of this.data) {
             const problem = (bin ?? __def.Stramp.getStruct(value[name])).findProblem(value[name], strict);
             if (problem) return problem.shifted(`${this.name}.${name}`, this);
         }
@@ -57,7 +59,7 @@ export class StructBin<T> extends Bin<T> {
 
     adapt(value: T): T {
         const adapted: Partial<T> = {};
-        for (const [name, bin] of Object.entries(this.data)) {
+        for (const [name, bin] of this.data) {
             adapted[name] = (bin ?? __def.Stramp.getStruct(value[name])).adapt(value[name]);
         }
         return adapted as T;
