@@ -101,7 +101,7 @@ export class ArrayBinConstructor<
             }
         }
 
-        const result = base !== null ? <unknown[] | Set<unknown>><unknown>base : new Array(length);
+        const result = base !== null ? <unknown[] | Set<unknown>><unknown>base : [];
 
         const type = this.type || __def.Stramp;
         for (let i = 0; i < length; i++) {
