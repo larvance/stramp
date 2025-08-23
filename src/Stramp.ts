@@ -58,8 +58,8 @@ import {HighwayBinConstructor} from "./misc/HighwayBin";
 import {AnyValueBinConstructor} from "./any/AnyValueBin";
 import {DefaultsToBin} from "./misc/DefaultsToBin";
 import {Big0} from "./Utils";
-import {ArrayStructBinConstructor} from "./array/ArrayStructBin";
 import {StructBin} from "./misc/StructBin";
+import {TupleBinConstructor} from "./array/TupleBin";
 
 class Stramp extends Bin {
     name = "any";
@@ -120,7 +120,6 @@ class Stramp extends Bin {
     i64array = I64ARRAY as typeof I64ARRAY;
     f32array = F32ARRAY as typeof F32ARRAY;
     f64array = F64ARRAY as typeof F64ARRAY;
-    tuple = ARRAY.struct([]);
 
     object = OBJECT as typeof OBJECT;
     map = MAP as typeof MAP;
@@ -132,6 +131,10 @@ class Stramp extends Bin {
     any = ANY;
     ignore = IGNORE as typeof IGNORE;
     constant = CONSTANT as typeof CONSTANT;
+
+    tuple(...types: Bin[]) {
+        return ARRAY.struct(types);
+    };
 
     unsafeWrite(bind: BufferIndex, value: unknown): void {
         const type = this.getTypeOf(value)!;
@@ -292,7 +295,7 @@ __def.ConstantBin = CONSTANT;
 __def.HighwayBin = HighwayBinConstructor;
 __def.ArrayBin = ARRAY;
 __def.SetBin = SET;
-__def.ArrayStructBin = ArrayStructBinConstructor
+__def.TupleStructBin = TupleBinConstructor
 __def.UndefinedBin = UNDEFINED;
 __def.NullBin = NULL;
 

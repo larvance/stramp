@@ -147,7 +147,7 @@ export class ArrayBinConstructor<
         if (!this.fixedSize) return new this.baseClass();
 
         const type = this.type || __def.Stramp;
-        const result = new Array(this.fixedSize);
+        const result = Array(this.fixedSize);
 
         for (let i = 0; i < this.fixedSize; i++) {
             result[i] = type.sample;
@@ -254,14 +254,13 @@ export class ArrayBinConstructor<
     };
 
     struct<N extends unknown[]>(types: Bin<N[number]>[]) {
-        return new __def.ArrayStructBin<ClassType, N[number]>(
+        return new __def.TupleStructBin<N>(
             this.typesName,
             this.typeName,
             this.fixedName,
             this.fixedTypeName,
             this.baseName,
-            types,
-            <new (...args: unknown[]) => ClassType extends "array" ? N[number][] : ClassType extends "set" ? Set<N[number]> : ClassType><unknown>this.baseClass
+            types
         );
     };
 

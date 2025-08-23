@@ -58,6 +58,7 @@ Stramp comes with the following default types:
 * `cstring`: Null terminated string
 * `bool`
 * `array`: Can hold any of these types, check out [ArrayBin](#array-bin)
+* `tuple`: Holds a fixed amount of given types in a specific order
 * `set`: Has every feature an array has
 * `buffer`: u8 typed array, but writes and reads a Buffer object
 * `u8array`
@@ -201,10 +202,10 @@ const restoredArray = myType.parse(buffer)
 console.log(restoredArray) // [5, 3, 1, 2, 4]
 ```
 
-### Array structs
+### Tuples
 
 ```js
-const myStruct = X.array.struct([X.u8, X.string8, X.null])
+const myStruct = X.tuple([X.u8, X.string8, X.null])
 
 const myArray = [5, "Hello", null]
 
@@ -219,6 +220,10 @@ console.log(buffer) // <Buffer 05 05 48 65 6c 6c 6f>
 const restoredArray = myStruct.parse(buffer)
 
 console.log(restoredArray) // [5, "Hello", null]
+
+// You can also think of them as types pairing into each other like:
+const myPairs = X.u8.to(X.string8).to(X.null) // Same as above
+const myPairs2 = X.u8.to(X.string8, X.null) // Same as above
 ```
 
 ## Object Bin

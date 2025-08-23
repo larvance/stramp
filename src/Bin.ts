@@ -5,12 +5,12 @@ import type {DefaultsToBin} from "./misc/DefaultsToBin";
 import type UndefinedBin from "./constant/UndefinedBin";
 import type NullBin from "./constant/NullBin";
 import type Stramp from "./Stramp";
-import type {ArrayStructBinConstructor} from "./array/ArrayStructBin";
 import type {ArrayBinConstructor} from "./array/ArrayBin";
 import type {ConstantBinConstructor} from "./misc/ConstantBin";
 import {HighwayBinConstructor} from "./misc/HighwayBin";
 import {ObjectBinConstructor} from "./object/ObjectBin";
 import {isBuffer} from "./Utils";
+import type {TupleBinConstructor} from "./array/TupleBin";
 
 let _id = 1;
 const bins: Record<number, Bin> = {};
@@ -27,7 +27,7 @@ export const __def = <{
     HighwayBin: typeof HighwayBinConstructor,
     ArrayBin: ArrayBinConstructor<"array">,
     SetBin: ArrayBinConstructor<"set">,
-    ArrayStructBin: typeof ArrayStructBinConstructor,
+    TupleStructBin: typeof TupleBinConstructor,
     UndefinedBin: typeof UndefinedBin,
     NullBin: typeof NullBin
 }>{};
