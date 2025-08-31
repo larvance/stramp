@@ -17,13 +17,19 @@ export default class ObjectStructBinConstructor<
     T = ExtractStruct<StructData>
 > extends Bin<T> {
     name = "";
+    private isLegacy = false;
 
     constructor(
         public structData: StructData, // not readonly because some people might want to use it recursively.
         public readonly classConstructor: ((obj: ExtractStruct<StructData>) => T),
-        public readonly baseName: string | null
+        public readonly baseName: string | null,
+        private _finished = true
     ) {
         super();
+    };
+
+    get finished() {
+        return this._finished;
     };
 
     init() {
@@ -47,6 +53,7 @@ export default class ObjectStructBinConstructor<
     };
 
     unsafeWrite(bind: BufferIndex, value: T) {
+        this.assertFinished();
         const structData = this.structData!;
         const keys = Object.keys(structData);
 
@@ -58,6 +65,7 @@ export default class ObjectStructBinConstructor<
     };
 
     read(bind: BufferIndex, base: T | null = null): T {
+        this.assertFinished();
         const structData = this.structData!;
         const keys = Object.keys(structData);
         const result = base || <StructData>{};
@@ -72,6 +80,7 @@ export default class ObjectStructBinConstructor<
     };
 
     unsafeSize(value: T): number {
+        this.assertFinished();
         const structData = this.structData!;
         const keys = Object.keys(structData);
         let size = 0;
@@ -86,6 +95,7 @@ export default class ObjectStructBinConstructor<
     };
 
     findProblem(value: unknown, strict = false) {
+        this.assertFinished();
         if (value === null || typeof value !== "object") return this.makeProblem("Expected an object");
 
         const structData = this.structData!;
@@ -102,6 +112,7 @@ export default class ObjectStructBinConstructor<
     };
 
     get sample(): T {
+        this.assertFinished();
         const obj = {};
         const structData = this.structData!;
         const keys = Object.keys(structData);
@@ -116,6 +127,7 @@ export default class ObjectStructBinConstructor<
     };
 
     adapt(value: unknown): T {
+        this.assertFinished();
         if (value === null || typeof value !== "object") value = {};
 
         const obj = {};
@@ -129,7 +141,15 @@ export default class ObjectStructBinConstructor<
         return super.adapt(this.classConstructor(<ExtractStruct<StructData>>obj));
     };
 
+    assertFinished() {
+        if (!this.finished) throw new Error("This bind struct is not finished. " +
+            "This bin is used on classes properties like `@myBindStruct.def(X.u8) x: number`. " +
+            "If you already made a class like this, modern decorator interpreters might require" +
+            " you to first instantiate the class like `new MyClass()`.");
+    };
+
     keys() {
+        this.assertFinished();
         return <(keyof StructData)[]>Object.keys(this.structData);
     };
 
@@ -167,6 +187,23 @@ export default class ObjectStructBinConstructor<
         return <ObjectStructBinConstructor<ExcludeKeys<StructData, K>>><unknown>o;
     };
 
+    def(desc: Bin): (_: unknown, context: unknown) => void {
+        this._finished = true;
+        return (_: unknown, context: {
+            name: string | symbol;
+            addInitializer(init: Function): void;
+        } | string) => {
+            if (typeof context === "string" || typeof context === "symbol") {
+                this.isLegacy = true;
+                (<object>this.structData)[context] = desc;
+                return;
+            }
+            context.addInitializer(() => {
+                (<object>this.structData)[context.name] = desc;
+            });
+        };
+    }
+
     copy(init = true) {
         const o = <this>new ObjectStructBinConstructor(
             this.structData,
@@ -176,4 +213,8 @@ export default class ObjectStructBinConstructor<
         if (init) o.init();
         return o;
     };
+}
+
+export function getBindStruct() {
+    return new ObjectStructBinConstructor({}, o => o, "Object<unfinished>", false);
 }

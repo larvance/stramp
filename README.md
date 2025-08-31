@@ -431,6 +431,42 @@ console.log(hello2)
 hello2.log()
 ```
 
+Not enough? You want to store multiple structs that bind to the same class? You can use the `X.bindStruct()`
+
+```ts
+import X from "stramp"
+
+const myBind1 = X.bindStruct()
+const myBind2 = X.bindStruct()
+
+class MyClass {
+    @myBind1.def(X.u8) a = 99
+    b = 99 // This is not a part of the structure, so it won't be saved/loaded.
+    @myBind2.def(X.u8) c = 99
+    @myBind1.def(X.u8) @myBind2.def(X.u16) d = 99 // Bind more than one! Or even bind with the normal @def()
+    
+    constructor(a = 99, b = 99, c = 99, d = 99) {
+        this.a = a
+        this.b = b
+        this.c = c
+        this.d = d
+    }
+}
+
+const hello = new MyClass(1, 2, 3)
+
+const struct1 = myBind1.serialize(hello) // <Buffer 01 03> // a and d
+const struct2 = myBind2.serialize(hello) // <Buffer 02 00 03> // c and d
+
+const hello1 = new MyClass;
+myBind1.parse(struct1, hello1);
+console.log(hello1); // MyClass { a: 1, b: 99, c: 99, d: 30 }
+
+const hello2 = new MyClass;
+myBind2.parse(struct2, hello2);
+console.log(hello2); // MyClass { a: 99, b: 99, c: 2, d: 3 }
+```
+
 ## The limitations
 
 Stramp cannot convert symbols, functions or class instances unless you have manually introduced them

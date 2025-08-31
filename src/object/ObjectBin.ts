@@ -159,7 +159,9 @@ export class ObjectBinConstructor<
     };
 
     struct<T extends { [k: string]: Bin }>(data: T) {
-        return new ObjectStructBinConstructor(data, r => r, this.baseName).init();
+        return <ObjectStructBinConstructor<T> & {
+            def: undefined
+        }>new ObjectStructBinConstructor(data, r => r, this.baseName).init();
     };
 
     copy(init = true) {

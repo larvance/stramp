@@ -51,7 +51,7 @@ import IGNORE from "./misc/IgnoreBin";
 import REGEXP from "./object/RegExpBin";
 import IntBaseBin from "./number/base/IntBaseBin";
 import BigIntBaseBin from "./number/base/BigIntBaseBin";
-import ObjectStructBin from "./object/ObjectStructBin";
+import ObjectStructBin, {getBindStruct} from "./object/ObjectStructBin";
 import NUMBER from "./number/NumberBin";
 import CONSTANT, {ConstantBinConstructor} from "./misc/ConstantBin";
 import {HighwayBinConstructor} from "./misc/HighwayBin";
@@ -131,6 +131,10 @@ class Stramp extends Bin {
     any = ANY;
     ignore = IGNORE as typeof IGNORE;
     constant = CONSTANT as typeof CONSTANT;
+
+    bindStruct() {
+        return getBindStruct();
+    };
 
     tuple(...types: Bin[]) {
         return ARRAY.struct(types);
@@ -324,7 +328,7 @@ function structSetter(clazz: object, key: string | symbol, val: object) {
     (clazz.hasOwnProperty(StructSymbol) ? clazz[StructSymbol] : (clazz[StructSymbol] = {}))[key] = val;
 }
 
-export function def(desc: object): (_: unknown, context: unknown) => void;
+export function def(desc: Bin): (_: unknown, context: unknown) => void;
 export function def(desc: object, context: unknown): void;
 export function def(desc: object, context?: unknown) {
     if (typeof context === "string" || typeof context === "symbol") {
