@@ -7,6 +7,9 @@ import UInt16Bin from "../number/UInt16Bin";
 import UInt8Bin from "../number/UInt8Bin";
 import {OptionalBin} from "../OptionalBin";
 import {IsOptionalBin} from "../Utils";
+import BooleanBin from "../boolean/BooleanBin";
+import TrueBin from "../boolean/TrueBin";
+import FalseBin from "../boolean/FalseBin";
 
 export class AnyBinConstructor<Bins extends Bin[], T extends Bins[number]["__TYPE__"] = Bins[number]["__TYPE__"]>
     extends Bin<T>
@@ -14,9 +17,15 @@ export class AnyBinConstructor<Bins extends Bin[], T extends Bins[number]["__TYP
     name: string;
     private readonly binIndexBin: IntBaseBin;
     isOptional = null;
+    public readonly bins: Bins;
 
-    constructor(public readonly bins: Bins) {
+    constructor(bins: Bins) {
         super();
+        this.bins = bins.map(bin => {
+            if (bin instanceof AnyBinConstructor) return [...bin.bins];
+            if (bin === BooleanBin) return [TrueBin, FalseBin];
+            return bin;
+        }).flat() as Bins;
         this.name = `${bins.map(bin => bin.name).join(" | ")}`;
         if (bins.length > (1 << 16) - 1) this.binIndexBin = UInt32Bin;
         else if (bins.length > 255) this.binIndexBin = UInt16Bin;

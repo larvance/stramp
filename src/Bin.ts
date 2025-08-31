@@ -107,8 +107,8 @@ export abstract class Bin<T = unknown> {
         return new __def.DefaultsToBin(this, default_);
     };
 
-    or<K>(other: Bin<K>) {
-        return new __def.AnyBin([this, other] as const);
+    or<K>(...others: Bin<K>[]) {
+        return new __def.AnyBin([this, ...others] as const);
     };
 
     orValue<K>(value: K) {

@@ -32,3 +32,7 @@ const player2 = new Player("hello2");
 struct.parse(buffer, player2);
 
 console.log(player2);
+
+const a = X.u8.or(X.string8).or(X.boolean);
+
+console.log(a.serialize(false));
