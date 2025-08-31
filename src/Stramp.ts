@@ -277,26 +277,26 @@ class Stramp extends Bin {
         return base;
     };
 
-    getStruct<T extends object>(self: T, clazz = self.constructor) {
-        if (!(StructSymbol in clazz)) {
+    getStruct<T extends object>(self: T, sym = StructSymbol, clazz = self.constructor) {
+        if (!clazz.hasOwnProperty(sym)) {
             throw new Error(`${clazz.name} instance is not initialized with a structure.`);
         }
 
-        const data = clazz[StructSymbol];
+        const data = clazz[sym];
 
         if (data instanceof StructBin) return <StructBin<T>>data;
-        if (clazz[StructLegacyDecoratorSymbol]) {
+        if (isLegacyDecorator) {
             // Because it's legacy it won't retrieve the parent classes' defs.
             const parent = Object.getPrototypeOf(clazz);
-            if (typeof parent === "function" && parent.hasOwnProperty(StructSymbol)) {
-                const parentStruct = this.getStruct(self, parent);
+            if (typeof parent === "function" && parent.hasOwnProperty(sym)) {
+                const parentStruct = this.getStruct(self, sym, parent);
                 for (const [name, bin] of parentStruct.data) {
                     if (!data.hasOwnProperty(name)) data[name] = bin;
                 }
             }
         }
 
-        return clazz[StructSymbol] = new StructBin<T>(self, clazz.name, <Record<string, Bin>>data);
+        return clazz[sym] = new StructBin<T>(self, clazz.name, <Record<string, Bin>>data);
     };
 
     def = def;
@@ -319,20 +319,22 @@ __def.Stramp = stramp;
 
 export const tuple = stramp.tuple;
 export const StructSymbol = Symbol("StructSymbol");
-export const StructLegacyDecoratorSymbol = Symbol("StructLegacyDecoratorSymbol");
+let isLegacyDecorator = false;
 
-function structSetter(clazz: object, key: string | symbol, val: object) {
-    if (val !== null && !(val instanceof Bin)) {
+function structSetter(clazz: object, key: string | symbol, val: symbol | object, val2?: symbol) {
+    if (val !== null && typeof val !== "symbol" && !(val instanceof Bin)) {
         throw new Error(`@def can only be used with instances of Bin, got ${typeof val} for key ${key.toString()}`);
     }
-    (clazz.hasOwnProperty(StructSymbol) ? clazz[StructSymbol] : (clazz[StructSymbol] = {}))[key] = val;
+    const sym = typeof val === "symbol" ? val : (typeof val2 === "symbol" ? val2 : StructSymbol);
+    (clazz.hasOwnProperty(sym) ? clazz[sym] : (clazz[sym] = {}))[key] = val;
 }
 
-export function def(desc: Bin): (_: unknown, context: unknown) => void;
+export function def(desc: Bin, symbol?: symbol): (_: unknown, context: unknown) => void;
+export function def(symbol: symbol): (_: unknown, context: unknown) => void;
 export function def(desc: object, context: unknown): void;
-export function def(desc: object, context?: unknown) {
+export function def(desc: object | symbol, context?: unknown) {
     if (typeof context === "string" || typeof context === "symbol") {
-        desc.constructor[StructLegacyDecoratorSymbol] = true;
+        isLegacyDecorator = true;
         structSetter(desc.constructor, context, null);
         return;
     }
@@ -351,17 +353,19 @@ export function def(desc: object, context?: unknown) {
         });
     }
 
-    return function (slf: unknown, context: {
+    if(context && typeof context !== "symbol") throw new Error("@def must be used with a Bin instance and/or a symbol when used with classes.");
+
+    return function (slf: unknown, ctx: {
         name: string | symbol;
         addInitializer(init: Function): void;
     } | string): void {
-        if (typeof context === "string" || typeof context === "symbol") {
-            slf.constructor[StructLegacyDecoratorSymbol] = true;
-            structSetter(slf.constructor, context, desc);
+        if (typeof ctx === "string" || typeof ctx === "symbol") {
+            isLegacyDecorator = true;
+            structSetter(slf.constructor, ctx, desc, <symbol>context);
             return;
         }
-        context.addInitializer(function () {
-            structSetter(this.constructor, context.name, desc);
+        ctx.addInitializer(function () {
+            structSetter(this.constructor, ctx.name, desc, <symbol>context);
         });
     };
 }
