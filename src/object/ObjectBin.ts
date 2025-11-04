@@ -2,7 +2,7 @@ import {__def, Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import ObjectStructBinConstructor from "./ObjectStructBin";
 import IntBaseBin from "../number/base/IntBaseBin";
-import {DefaultLengthBin, DefaultStringBin} from "../Defaults";
+import {SizeBin, DefaultStringBin} from "../Defaults";
 import {StringBin} from "../string/StringBin";
 
 export class ObjectBinConstructor<
@@ -173,4 +173,4 @@ export class ObjectBinConstructor<
     };
 }
 
-export default new ObjectBinConstructor(DefaultStringBin, null, r => r, null, DefaultLengthBin).init();
+export default new ObjectBinConstructor(DefaultStringBin, null, r => r, null, SizeBin).init();

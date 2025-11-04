@@ -1,547 +1,776 @@
 # Stramp
 
-A JavaScript library that can convert any kind of data into binary that can be restored.
+A powerful JavaScript/TypeScript library for efficient binary serialization and deserialization of any data type. Stramp
+provides lossless conversion between JavaScript objects and binary buffers, with excellent performance and type safety.
 
-# Installation
+## 🚀 Quick Start
+
+### Installation
 
 ```bash
 npm install stramp
 ```
 
-# Importing
-
-I will be importing the library as `X` in the examples below.
+### Basic Usage
 
 ```js
 import X from "stramp"
+
+// Serialize any data to binary
+const data = {name: "John", age: 30, scores: [95, 87, 92]}
+const buffer = X.serialize(data)
+
+// Deserialize back to the original data
+const restored = X.parse(buffer)
+console.log(restored) // { name: "John", age: 30, scores: [95, 87, 92] }
 ```
 
-# Example usage
+## 📚 Table of Contents
+
+<!-- TOC -->
+* [Stramp](#stramp)
+  * [🚀 Quick Start](#-quick-start)
+    * [Installation](#installation)
+    * [Basic Usage](#basic-usage)
+  * [📚 Table of Contents](#-table-of-contents)
+  * [🎯 Getting Started](#-getting-started)
+    * [What is Stramp?](#what-is-stramp)
+    * [Core Concepts](#core-concepts)
+  * [🔢 Basic Types](#-basic-types)
+    * [Numbers](#numbers)
+    * [Strings](#strings)
+    * [Booleans and Constants](#booleans-and-constants)
+    * [Arrays and Collections](#arrays-and-collections)
+  * [🏗️ Complex Data Structures](#-complex-data-structures)
+    * [Objects](#objects)
+    * [Maps](#maps)
+    * [Tuples (Fixed-order arrays)](#tuples-fixed-order-arrays)
+    * [Custom Types with Highway](#custom-types-with-highway)
+  * [🎨 Advanced Features](#-advanced-features)
+    * [Type Unions with `any`](#type-unions-with-any)
+    * [Default Values](#default-values)
+    * [Nullable Types](#nullable-types)
+    * [Ignore Properties](#ignore-properties)
+    * [Constants](#constants)
+  * [⚡ Performance Optimization](#-performance-optimization)
+    * [Structs vs Dynamic Objects](#structs-vs-dynamic-objects)
+    * [Fixed-size vs Dynamic Arrays](#fixed-size-vs-dynamic-arrays)
+    * [Memory-efficient Class Serialization](#memory-efficient-class-serialization)
+  * [🔧 TypeScript Integration](#-typescript-integration)
+    * [Type Inference](#type-inference)
+    * [Decorators (Experimental)](#decorators-experimental)
+    * [Multiple Struct Bindings](#multiple-struct-bindings)
+  * [🌟 Real-World Examples](#-real-world-examples)
+    * [Game Save System](#game-save-system)
+    * [Network Protocol](#network-protocol)
+    * [Database Serialization](#database-serialization)
+  * [📖 API Reference](#-api-reference)
+    * [Core Functions](#core-functions)
+    * [Available Types](#available-types)
+      * [Numbers](#numbers-1)
+      * [Strings](#strings-1)
+      * [Booleans & Constants](#booleans--constants)
+      * [Collections](#collections)
+      * [Objects & Classes](#objects--classes)
+      * [Special](#special)
+    * [Bin Methods](#bin-methods)
+    * [Object Struct Methods](#object-struct-methods)
+  * [🚨 Limitations & Best Practices](#-limitations--best-practices)
+    * [Limitations](#limitations)
+    * [Best Practices](#best-practices)
+    * [Error Handling](#error-handling)
+  * [🤝 Contributing](#-contributing)
+  * [📄 License](#-license)
+<!-- TOC -->
+
+## 🎯 Getting Started
+
+### What is Stramp?
+
+Stramp is a binary serialization library that converts JavaScript data into compact binary format and back. Unlike JSON,
+Stramp:
+
+- **Preserves data types** (numbers, booleans, null, undefined, etc.)
+- **More compact** than JSON (often 50-80% smaller)
+- **Type-safe** with TypeScript support
+- **Extensible** with custom serialization rules
+
+### Core Concepts
+
+**Bin**: A "Binary Data Converter" that handles serialization/deserialization of specific data types. Each Bin knows how
+to convert its data type to/from binary.
+
+**Struct**: A predefined object structure that defines exactly which properties to serialize and their types.
+
+**Highway**: A way to transform data during serialization/deserialization.
+
+## 🔢 Basic Types
+
+### Numbers
 
 ```js
-const myValue = 5716282
+import X from "stramp"
 
-const buffer = X.serialize(myValue)
+// Integer types
+X.u8.serialize(255)        // 8-bit unsigned (0-255)
+X.u16.serialize(65535)     // 16-bit unsigned (0-65535)
+X.u32.serialize(4294967295) // 32-bit unsigned
+X.u64.serialize(18446744073709551615n) // 64-bit unsigned
 
-console.log(buffer) // <Buffer 0a 3a 39 57 00>
+X.i8.serialize(-128)       // 8-bit signed (-128 to 127)
+X.i16.serialize(-32768)    // 16-bit signed
+X.i32.serialize(-2147483648) // 32-bit signed
+X.i64.serialize(-9223372036854775808n) // 64-bit signed
 
-const restoredValue = X.parse(buffer)
+// Floating point
+X.f32.serialize(3.14159)   // 32-bit float
+X.f64.serialize(Math.PI)   // 64-bit float (recommended)
 
-console.log(restoredValue) // 5716282
+// Big integers
+X.bigint.serialize(123456789012345678901234567890n)
+X.ubigint.serialize(123456789012345678901234567890n) // unsigned
 ```
 
-## What is a Stramp Bin?
-
-A Binary Data Converter is a class that can convert a specific kind of data into a sequences of bytes
-and is able to convert that sequence of bytes back into the same data it was given. It is a both-ways
-lossless conversion. **We will be referring to them as 'Bin's throughout this Readme file and the code itself.**
-
-## Defaults
-
-Stramp comes with the following default types:
-
-* `u8`
-* `u16`
-* `u32`
-* `u64`
-* `i8`
-* `i16`
-* `i32`
-* `i64`
-* `f32`: Not recommended as its low precision, JavaScript uses `f64` by default
-* `f64`
-* `ubigint`
-* `bigint`
-* `string8`: 1 byte for length, max 2^8 - 1 characters (or s8 or str8)
-* `string16`: 2 bytes for length, max 2^16 - 1 characters (or s16 or str16)
-* `string32`: 4 bytes for length, max 2^32 - 1 characters (or s32 or str32)
-* `cstring`: Null terminated string
-* `bool`
-* `array`: Can hold any of these types, check out [ArrayBin](#array-bin)
-* `tuple`: Holds a fixed amount of given types in a specific order
-* `set`: Has every feature an array has
-* `buffer`: u8 typed array, but writes and reads a Buffer object
-* `u8array`
-* `u8clampedArray`
-* `u16array`
-* `u32array`
-* `u64array`
-* `i8array`
-* `i16array`
-* `i32array`
-* `i64array`
-* `f32array`
-* `f64array`
-* `object`: Can hold any of these types, check out [ObjectBin](#object-bin)
-* `map`: Holds key-value pairs that can be any of these types
-* `class`: Can hold class instances if the class has been registered in it
-* `date`
-* `regexp`
-* `any`
-* `ignore`: Writes nothing no matter what, reads undefined
-* `constant`: Default constant `"Stramp!"`. `constant.new(yourValue)`
-* `null`
-* `undefined`
-* `true`
-* `false`
-* `zero`
-* `bigZero`
-* `NaN`
-* `inf`
-* `negInf`
-
-## A comprehensive example
+### Strings
 
 ```js
-const obj = {
-    name: "John Doe",
-    age: 42,
-    address: {
-        street: "123 Main St",
-        city: "Anytown",
-        state: "CA",
-        zip: "12345"
-    },
-    phoneNumbers: [1234567890, 9876543210],
-    pets: ["cat", "dog"],
-    favoriteColors: ["red", "blue", "green"],
-    isMarried: true,
-    children: null,
-    spouse: undefined,
-    favoriteNumber: 3.14159,
-    favoriteMathConstant: Math.PI,
-    favoriteArray: [1, "Apple Pie", true, null, undefined, 258724n, 3.14159, Math.PI]
+// Length-prefixed strings
+X.string8.serialize("Hello")   // 1 byte length prefix (max 255 chars)
+X.string16.serialize("Longer string") // 2 bytes length prefix
+X.string32.serialize("Very long string...") // 4 bytes length prefix
+
+// Null-terminated strings
+X.cstring.serialize("Hello\0") // C-style null-terminated
+
+// Aliases
+X.s8.serialize("Hello")    // Same as string8
+X.str16.serialize("Hello") // Same as string16
+```
+
+### Booleans and Constants
+
+```js
+// Booleans
+X.bool.serialize(true)
+X.bool.serialize(false)
+
+// Constants (no data stored, just markers)
+X.true.serialize(true)     // Always serializes to 0 bytes
+X.false.serialize(false)   // Always serializes to 0 bytes
+X.null.serialize(null)     // Always serializes to 0 bytes
+X.undefined.serialize(undefined) // Always serializes to 0 bytes
+X.zero.serialize(0)        // Always serializes to 0 bytes
+X.NaN.serialize(NaN)      // Always serializes to 0 bytes
+X.inf.serialize(Infinity) // Always serializes to 0 bytes
+```
+
+### Arrays and Collections
+
+```js
+// Dynamic arrays (any type)
+const numbers = [1, 2, 3, 4, 5]
+X.serialize(numbers) // Automatically detects types
+
+// Typed arrays
+const numberArray = X.u8.array()
+numberArray.serialize([1, 2, 3, 4, 5])
+
+// Fixed-size arrays
+const fixedArray = X.u8.array(5)
+fixedArray.serialize([1, 2, 3, 4, 5])
+
+// Sets
+const numberSet = X.u8.set()
+numberSet.serialize(new Set([1, 2, 3, 4, 5]))
+
+// TypedArrays
+X.u8array.serialize(new Uint8Array([1, 2, 3]))
+X.f32array.serialize(new Float32Array([1.1, 2.2, 3.3]))
+```
+
+## 🏗️ Complex Data Structures
+
+### Objects
+
+```js
+// Dynamic objects (any properties)
+const person = {
+    name: "Alice",
+    age: 25,
+    hobbies: ["reading", "coding"]
 }
+X.serialize(person) // Automatically handles all types
 
-const buffer = X.serialize(obj)
-
-console.log(buffer) // <Buffer 2c 0c 04 6e 61 6d 65 29 08 4a 6f 68 6e 20 44 ... 308 more bytes>
-// This saved us 67 bytes compared to JSON! (Will save more than 3 times when using structs)
-
-const restoredObj = X.parse(buffer)
-
-console.log(restoredObj) // Will have the same values as obj
-```
-
-## Universal Bin Operations
-
-You can use the following operations on any Bin:
-
-```js
-const A = X.u8 // or any other Bin
-const B = X.string8 // or any other Bin
-
-const AorB = X.any.of(A, B) // Creates a Bin that can hold either u8 or string8
-AorB.serialize("hello!")
-AorB.serialize(10)
-
-const defaultedU8 = A.default(0) // Creates a Bin that defaults to 0 if the value is undefined
-const usefulObject = X.object.struct({
-    myNumber: X.u8.default(0)
-})
-const buf = usefulObject.serialize({}) // This works!
-```
-
-## Array Bin
-
-### Default array
-
-The default array can hold any amount of anything.
-
-Example:
-
-```js
-const myArray = [1, "Apple Pie", true, null, undefined, 258724n, 3.14159, Math.PI]
-
-const buffer = X.serialize(myArray)
-
-// First byte indicates that it's an array
-// 2-5 bytes indicate the length of the array as a u32
-// The rest of the bytes are the array's values with their types as a single byte in front
-console.log(buffer) // <Buffer 17 08 00 00 00 0c 01 29 09 41 70 70 6c 65 20 50 69 65 14 10 11 09 a4 f2 03 00 00 00 00 00 03 6e 86 1b f0 f9 21 09 40 03 18 2d 44 54 fb 21 09 40>
-
-const restoredArray = X.parse(buffer)
-
-console.log(restoredArray) // Will have the same values as myArray
-```
-
-### Typed dynamic sized arrays
-
-```js
-const myType = X.u8.array()
-
-const myArray = [5, 3, 1, 2, 4]
-
-const buffer = myType.serialize(myArray)
-
-// First 4 bytes are the size of the array as a u32
-// The rest of the bytes are the array's values
-console.log(buffer) // <Buffer 05 00 00 00 05 03 01 02 04>
-
-const restoredArray = myType.parse(buffer)
-
-console.log(restoredArray) // [5, 3, 1, 2, 4]
-
-// You can change the array's length's bytes using this:
-const myNewType = myType.lengthBytes(X.u8) // Uses 1 byte for the length
-```
-
-### Single typed fixed sized arrays
-
-```js
-const myType = X.u8.array(5)
-
-const myArray = [5, 3, 1, 2, 4]
-
-const buffer = myType.serialize(myArray)
-
-console.log(buffer) // <Buffer 05 03 01 02 04>
-
-const restoredArray = myType.parse(buffer)
-
-console.log(restoredArray) // [5, 3, 1, 2, 4]
-```
-
-### Tuples
-
-```js
-const myStruct = X.tuple([X.u8, X.string8, X.null])
-
-const myArray = [5, "Hello", null]
-
-const buffer = myStruct.serialize(myArray)
-
-// 1st byte: The first element in the array
-// 2nd byte: Length of the string
-// 3-7th bytes: The string
-// Notice that it doesn't store the null, because it already knows it has to be there.
-console.log(buffer) // <Buffer 05 05 48 65 6c 6c 6f>
-
-const restoredArray = myStruct.parse(buffer)
-
-console.log(restoredArray) // [5, "Hello", null]
-
-// You can also think of them as types pairing into each other like:
-const myPairs = X.u8.to(X.string8).to(X.null) // Same as above
-const myPairs2 = X.u8.to(X.string8, X.null) // Same as above
-```
-
-## Object Bin
-
-### Default object
-
-```js
-const myObject = {
-    name: "John Doe",
-    age: 30,
-    ageBig: 30n
-}
-
-const buffer = X.serialize(myObject)
-
-console.log(buffer) // <Buffer 2c 03 00 00 00 04 00 00 00 6e 61 6d 65 29 08 4a 6f 68 6e 20 44 6f 65 03 00 00 00 61 67 65 0c 1e 06 00 00 00 61 67 65 42 69 67 0c 1e>
-
-const restoredObject = X.parse(buffer)
-
-console.log(restoredObject) // Will have the same values as myObject
-```
-
-### Typed dynamic sized objects
-
-```js
-// Note that the keyTyped only accepts a string bin
-const myType = X.u8.pairWithKey(X.string8)
-
-const myObject = {
-    a: 10,
-    b: 20,
-    c: 30
-}
-
-const buffer = myType.serialize(myObject)
-
-// The first 4 bytes are the size of the object, you can change it like this:  .lengthBytes(X.u8)
-console.log(buffer) // <Buffer 03 00 00 00 01 61 0a 01 62 14 01 63 1e>
-
-const restoredObject = myType.parse(buffer)
-
-console.log(restoredObject) // Will have the same values as myObject
-```
-
-### Object structs
-
-```js
-const myType = X.object.struct({
-    age: X.u8,
+// Typed objects
+const personType = X.object.struct({
     name: X.string8,
-    numbers: X.u8.array(5)
+    age: X.u8,
+    hobbies: X.string8.array()
 })
 
-const myObject = {
-    age: 30,
-    name: "John Doe",
-    numbers: [1, 2, 3, 4, 5]
-}
-
-const buffer = myType.serialize(myObject)
-
-// First byte is the age
-// Second byte is the length of the name
-// 3-7th bytes is the name
-// 8-12th bytes are the numbers array
-console.log(buffer) // <Buffer 1e 08 4a 6f 68 6e 20 44 6f 65 01 02 03 04 05>
-// This drops 50 bytes of JSON down to 15 bytes!
-// Meaning 1000 of this object would gain you THIRTY FIVE THOUSAND BYTES!
-
-const restoredObject = myType.parse(buffer)
-
-console.log(restoredObject) // Will have the same values as myObject
+const buffer = personType.serialize(person)
+const restored = personType.parse(buffer)
 ```
 
-## Using classes
-
-The simple way:
+### Maps
 
 ```js
-class Vector {
-    x = 0.1
-    y = 0.1
-}
+const userMap = new Map([
+    ["alice", {age: 25, score: 95}],
+    ["bob", {age: 30, score: 87}]
+])
 
-X.class.add(Vector)
+X.serialize(userMap) // Automatically handles Map
 
-const myVector = new Vector()
-
-const buffer = X.serialize(myVector)
-
-console.log(buffer) // <Buffer 2f 00 02 00 00 00 01 00 00 00 78 03 9a 99 99 99 99 99 b9 3f 01 00 00 00 79 03 9a 99 99 99 99 99 b9 3f>
-// The result is too long though as it doesn't know the types of the properties.
-
-const restoredVector = X.parse(buffer)
-
-console.log(restoredVector) // Will have the same values as myVector
+// Typed maps
+const userType = X.map.struct({
+    key: X.string8,
+    value: X.object.struct({
+        age: X.u8,
+        score: X.u8
+    })
+})
 ```
 
-The memory-efficient way:
+### Tuples (Fixed-order arrays)
 
 ```js
-class Vector {
+// Tuple with specific types in order
+const point = X.tuple(X.f64, X.f64, X.string8)
+const data = [3.14, 2.71, "origin"]
+const buffer = point.serialize(data)
+const restored = point.parse(buffer) // [3.14, 2.71, "origin"]
+
+// Alternative syntax
+const point2 = X.f64.to(X.f64, X.string8) // Same as above
+```
+
+### Custom Types with Highway
+
+```js
+class Vector2D {
     constructor(x, y) {
+        this.x = x
+        this.y = y
+    }
+
+    magnitude() {
+        return Math.sqrt(this.x * this.x + this.y * this.y)
+    }
+}
+
+// Create a Bin that converts Vector2D to/from [x, y] array
+const vectorBin = X.tuple(X.f64, X.f64).highway(
+    vec => [vec.x, vec.y],           // serialize: Vector2D -> [x, y]
+    coords => new Vector2D(coords[0], coords[1]) // deserialize: [x, y] -> Vector2D
+)
+
+const vec = new Vector2D(3, 4)
+const buffer = vectorBin.serialize(vec)
+const restored = vectorBin.parse(buffer) // Vector2D { x: 3, y: 4 }
+```
+
+## 🎨 Advanced Features
+
+### Type Unions with `any`
+
+```js
+// Union of different types
+const numberOrString = X.any.of(X.u8, X.string8)
+numberOrString.serialize(42)    // number
+numberOrString.serialize("42") // string
+
+// Union of specific values
+const status = X.any.ofValues("active", "inactive", "pending")
+status.serialize("active") // Only these 3 values allowed
+```
+
+### Default Values
+
+```js
+// Provide default values for missing properties
+const config = X.object.struct({
+    port: X.u16.default(3000),
+    host: X.string8.default("localhost"),
+    debug: X.bool.default(false)
+})
+
+// Works with missing properties
+const buffer = config.serialize({port: 8080}) // host and debug use defaults
+const restored = config.parse(buffer) // { port: 8080, host: "localhost", debug: false }
+```
+
+### Nullable Types
+
+```js
+// Make any type nullable
+const nullableString = X.string8.nullable()
+nullableString.serialize("hello") // string
+nullableString.serialize(null)    // null
+```
+
+### Ignore Properties
+
+```js
+// Skip serialization of certain properties
+const user = X.object.struct({
+    id: X.u32,
+    name: X.string8,
+    password: X.ignore, // Won't be serialized
+    lastLogin: X.date
+})
+```
+
+### Constants
+
+```js
+// Store constant values
+const header = X.constant.new("STMP") // Always writes "STMP"
+const version = X.constant.new(1)     // Always writes 1
+
+const fileFormat = X.object.struct({
+    magic: header,
+    version: version,
+    data: X.u8.array()
+})
+```
+
+## ⚡ Performance Optimization
+
+### Structs vs Dynamic Objects
+
+```js
+// ❌ Less efficient - dynamic type detection
+const dynamic = X.serialize({
+    x: 100,
+    y: 200,
+    name: "point"
+})
+
+// ✅ More efficient - predefined structure
+const struct = X.object.struct({
+    x: X.u8,
+    y: X.u8,
+    name: X.string8
+})
+const optimized = struct.serialize({x: 100, y: 200, name: "point"})
+```
+
+### Fixed-size vs Dynamic Arrays
+
+```js
+// ❌ Less efficient - stores length
+const dynamic = X.u8.array()
+dynamic.serialize([1, 2, 3, 4, 5])
+
+// ✅ More efficient - no length stored
+const fixed = X.u8.array(5)
+fixed.serialize([1, 2, 3, 4, 5])
+```
+
+### Memory-efficient Class Serialization
+
+```js
+class Player {
+    constructor(x, y, health) {
+        this.x = x
+        this.y = y
+        this.health = health
+    }
+}
+
+// ❌ Less efficient - stores property names
+X.class.add(Player)
+const buffer1 = X.serialize(new Player(100, 200, 50))
+
+// ✅ More efficient - predefined structure
+const PlayerType = X.object.struct({
+    x: X.f32,
+    y: X.f32,
+    health: X.u8
+}).withConstructor(obj => new Player(obj.x, obj.y, obj.health))
+
+const buffer2 = PlayerType.serialize(new Player(100, 200, 50))
+```
+
+## 🔧 TypeScript Integration
+
+### Type Inference
+
+```ts
+import X from "stramp"
+
+// Automatic type inference
+const userBin = X.object.struct({
+    id: X.u32,
+    name: X.string8,
+    active: X.bool
+})
+
+type User = X.infer<typeof userBin>
+// User = { id: number, name: string, active: boolean }
+
+// Type-safe serialization
+const user: User = {id: 1, name: "Alice", active: true}
+const buffer = userBin.serialize(user) // TypeScript ensures correct types
+```
+
+### Decorators (Experimental)
+
+```ts
+import X, {def} from "stramp"
+
+class GameEntity {
+    @def(X.f32) x = 0
+    @def(X.f32) y = 0
+    @def(X.u8) health = 100
+
+    // Properties without @def are ignored
+    private internalState = "some value"
+
+    constructor(x = 0, y = 0) {
         this.x = x
         this.y = y
     }
 }
 
-const VectorType = X.object
-    .struct({x: X.f64, y: X.f64})
-    .withConstructor(obj => new Vector(obj.x, obj.y))
-
-const myVector = new Vector(6346.5213, 5123.1236)
-
-const buffer = VectorType.serialize(myVector)
-
-console.log(buffer) // <Buffer 68 b3 ea 73 85 ca b8 40 c9 e5 3f a4 1f 03 b4 40>
-// This small change of using a struct reduces the byte size to only 16 bytes! (8 bytes per number because f64 has 64 bits)
-
-const restoredVector = VectorType.parse(buffer)
-
-console.log(restoredVector) // Vector { x: 6346.5213, y: 5123.1236 }
+const entity = new GameEntity(10, 20)
+const struct = X.getStruct(entity)
+const buffer = struct.serialize(entity)
 ```
 
-## Highway Constructs
-
-Highway Constructs are a way to build on top of existing Bins to make abstract data types. Here's an example:
-
-```ts
-class MyNumber {
-    constructor(value) {
-        this.value = value
-    }
-}
-
-const myStruct = X.u8.highway(
-    obj => obj.value,
-    val => new MyNumber(val)
-)
-
-const myInstance = new MyNumber(1)
-
-const buf = myStruct.serialize(myInstance)
-
-console.log(buf) // <Buffer 01>
-
-const myInstance2 = myStruct.parse(buf)
-
-console.log(myInstance2) // MyNumber { value: 1 }
-```
-
-## TypeScript support
-
-Every Bin is perfectly typed, so you can use them in TypeScript without any issues.
-
-To get the type a Bin is holding, you can use `infer`.
-
-```ts
-import * as X from "stramp"
-
-const myBin = X.u8
-
-type MyType = X.infer<typeof myBin> // MyType will be 'number'
-```
-
-## With Modern Decorators
-
-You can use decorators inside your classes to define the structure of your data.
-
-Only the properties that have been decorated with `@def` will be saved and loaded.
-
-This is useful for defining the structure of your data without having to create a separate Bin for it.
-
-```ts
-import X, {def} from "stramp"
-
-class MyClass {
-    @def(X.u8) a = 155
-
-    b: number // This is not a part of the structure, so it won't be saved/loaded.
-
-    constructor(b = 10) {
-        this.b = b
-    }
-
-    log() {
-        console.log(this.a * this.b)
-    }
-}
-
-const hello1 = new MyClass()
-
-const struct = X.getStruct(hello1) // Is a StructBin that extends Bin so you can use every function a Bin has
-
-const buffer = struct.serialize(hello1)
-
-console.log(buffer)
-
-const hello2 = new MyClass()
-
-struct.parse(buffer, hello2) // parse into hello2
-
-console.log(hello2)
-
-hello2.log()
-```
-
-Not enough? You want to store multiple structs that bind to the same class? You can use the `X.bindStruct()`
+### Multiple Struct Bindings
 
 ```ts
 import X from "stramp"
 
-const myBind1 = X.bindStruct()
-const myBind2 = X.bindStruct()
+const networkBind = X.bindStruct()
+const saveBind = X.bindStruct()
 
-class MyClass {
-    @myBind1.def(X.u8) a = 99
-    b = 99 // This is not a part of the structure, so it won't be saved/loaded.
-    @myBind2.def(X.u8) c = 99
-    @myBind1.def(X.u8) @myBind2.def(X.u16) d = 99 // Bind more than one! Or even bind with the normal @def()
-    
-    constructor(a = 99, b = 99, c = 99, d = 99) {
-        this.a = a
-        this.b = b
-        this.c = c
-        this.d = d
-    }
+class Player {
+    @networkBind.def(X.f32) x = 0
+    @networkBind.def(X.f32) y = 0
+    @saveBind.def(X.u32) id = 0
+    @saveBind.def(X.string8) name = ""
+    @networkBind.def(X.u8) @saveBind.def(X.u8) health = 100
 }
 
-const hello = new MyClass(1, 2, 3)
+const player = new Player()
+player.x = 100
+player.y = 200
+player.id = 12345
+player.name = "Alice"
+player.health = 75
 
-const struct1 = myBind1.serialize(hello) // <Buffer 01 03> // a and d
-const struct2 = myBind2.serialize(hello) // <Buffer 02 00 03> // c and d
+// Network packet (position + health only)
+const networkData = networkBind.serialize(player)
 
-const hello1 = new MyClass;
-myBind1.parse(struct1, hello1);
-console.log(hello1); // MyClass { a: 1, b: 99, c: 99, d: 30 }
-
-const hello2 = new MyClass;
-myBind2.parse(struct2, hello2);
-console.log(hello2); // MyClass { a: 99, b: 99, c: 2, d: 3 }
+// Save file (id + name + health only)
+const saveData = saveBind.serialize(player)
 ```
 
-## The limitations
+## 🌟 Real-World Examples
 
-Stramp cannot convert symbols, functions or class instances unless you have manually introduced them
-to their respective Bins.
-
-Here's an example on runtime values:
-
-```js
-function A() {
-}
-
-function B() {
-}
-
-class C {
-}
-
-// Note that the order is important
-// If you were to serialize it, change the order of these values,
-// the parsed value will be different and may even be corrupted
-const myBin = X.any.ofValues(A, B, C)
-
-const buffer = myBin.serialize(A) // <Buffer 00>
-
-const restoredValue = myBin.parse(buffer) // A
-
-console.log(restoredValue === A) // true
-```
-
-## ZSTD compression implementation
-
-In the following example I will use the `@oneidentity/zstd-js` to compress a given buffer with any size. Uses 1 byte for
-notating whether it's compressed or not because ZSTD requires about 100 bytes to efficiently compress the data.
-
-The code is implemented in such way so that it works for both web and node.js.
+### Game Save System
 
 ```ts
-import {ZstdInit, ZstdSimple} from "@oneidentity/zstd-js"
-import {Buffer} from "buffer" // npm library that allows buffer api for web
+import X from "stramp"
+import * as fs from "fs"
 
-await ZstdInit()
+// Define game data structures
+const GameState = X.object.struct({
+    player: X.object.struct({
+        position: X.tuple(X.f32, X.f32),
+        health: X.u8,
+        inventory: X.u16.array(),
+        experience: X.u32
+    }),
+    world: X.object.struct({
+        seed: X.u32,
+        time: X.u64,
+        weather: X.string8
+    }),
+    settings: X.object.struct({
+        volume: X.f32,
+        fullscreen: X.bool,
+        language: X.string8
+    })
+})
 
-export function allocBuffer(size: number, safe = true) {
-    const buffer = safe ? Buffer.alloc(size) : Buffer.allocUnsafe(size)
-    buffer._isBuffer = true
-    return buffer
-}
+class Game {
+    private state: X.infer<typeof GameState>
 
-export function copyBuffer(buffer: Buffer | Uint8Array | number[]) {
-    const newBuffer = Buffer.from(buffer)
-    newBuffer._isBuffer = true
-    return newBuffer
-}
-
-export function zstdOptionalEncode(buffer: Buffer) {
-    if (buffer.length > 100) {
-        const compressed = ZstdSimple.compress(buffer)
-        const buffer2 = allocBuffer(compressed.length + 1)
-        buffer2[0] = 1
-        buffer2.set(compressed, 1)
-        return buffer2
+    constructor() {
+        this.state = {
+            player: {
+                position: [0, 0],
+                health: 100,
+                inventory: [],
+                experience: 0
+            },
+            world: {
+                seed: Math.floor(Math.random() * 1000000),
+                time: BigInt(Date.now()),
+                weather: "sunny"
+            },
+            settings: {
+                volume: 0.8,
+                fullscreen: false,
+                language: "en"
+            }
+        }
     }
 
-    const buffer2 = allocBuffer(buffer.length + 1)
-    buffer2[0] = 0 // just to be safe
-    buffer.copy(buffer2, 1)
-    return buffer2
-}
+    save(filename: string) {
+        const buffer = GameState.serialize(this.state)
+        fs.writeFileSync(filename, buffer)
+    }
 
-export function zstdOptionalDecode(buffer: Buffer) {
-    const sliced = allocBuffer(buffer.length - 1)
-    buffer.copy(sliced, 0, 1)
-
-    if (buffer[0] === 1) return copyBuffer(ZstdSimple.decompress(sliced))
-
-    return sliced
+    load(filename: string) {
+        const buffer = fs.readFileSync(filename)
+        this.state = GameState.parse(buffer)
+    }
 }
 ```
+
+### Network Protocol
+
+```ts
+import X from "stramp"
+
+// Define message types
+const MessageTypes = X.any.ofValues("join", "move", "chat", "quit")
+
+const NetworkMessage = X.object.struct({
+    type: MessageTypes,
+    timestamp: X.u64,
+    data: X.any.of(
+        // Join message
+        X.object.struct({
+            playerId: X.u32,
+            name: X.string8
+        }),
+        // Move message
+        X.tuple(X.f32, X.f32),
+        // Chat message
+        X.string8,
+        // Quit message (no data)
+        X.ignore
+    )
+})
+
+class NetworkProtocol {
+    static serialize(type: string, data: any) {
+        return NetworkMessage.serialize({
+            type,
+            timestamp: BigInt(Date.now()),
+            data
+        })
+    }
+
+    static parse(buffer: Buffer) {
+        return NetworkMessage.parse(buffer)
+    }
+}
+
+// Usage
+const joinMsg = NetworkProtocol.serialize("join", {
+    playerId: 12345,
+    name: "Alice"
+})
+
+const moveMsg = NetworkProtocol.serialize("move", [100.5, 200.3])
+const chatMsg = NetworkProtocol.serialize("chat", "Hello everyone!")
+const quitMsg = NetworkProtocol.serialize("quit", null)
+```
+
+### Database Serialization
+
+```ts
+import X from "stramp"
+
+// Efficient database record format
+const UserRecord = X.object.struct({
+    id: X.u32,
+    email: X.string8,
+    passwordHash: X.string8,
+    createdAt: X.u64,
+    lastLogin: X.u64,
+    isActive: X.bool,
+    preferences: X.object.struct({
+        theme: X.string8,
+        notifications: X.bool,
+        language: X.string8
+    })
+})
+
+class UserDatabase {
+    private records = new Map<number, Buffer>()
+
+    saveUser(user: X.infer<typeof UserRecord>) {
+        const buffer = UserRecord.serialize(user)
+        this.records.set(user.id, buffer)
+    }
+
+    getUser(id: number): X.infer<typeof UserRecord> | null {
+        const buffer = this.records.get(id)
+        if (!buffer) return null
+        return UserRecord.parse(buffer)
+    }
+}
+```
+
+## 📖 API Reference
+
+### Core Functions
+
+```js
+// Main serialization/deserialization
+X.serialize(value)           // Convert any value to Buffer
+X.parse(buffer)             // Convert Buffer back to value
+
+// Type detection
+X.getTypeOf(value)          // Get appropriate Bin for value
+X.getStrictTypeOf(value)    // Get exact Bin for value
+```
+
+### Available Types
+
+#### Numbers
+
+- `X.u8`, `X.u16`, `X.u32`, `X.u64` - Unsigned integers
+- `X.i8`, `X.i16`, `X.i32`, `X.i64` - Signed integers
+- `X.f32`, `X.f64` - Floating point
+- `X.bigint`, `X.ubigint` - Big integers
+- `X.number` - Auto-detected number type
+
+#### Strings
+
+- `X.string8`, `X.string16`, `X.string32` - Length-prefixed
+- `X.cstring` - Null-terminated
+- Aliases: `X.s8`, `X.s16`, `X.s32`, `X.str8`, `X.str16`, `X.str32`
+
+#### Booleans & Constants
+
+- `X.bool`, `X.boolean` - Boolean values
+- `X.true`, `X.false` - Constant booleans
+- `X.null`, `X.undefined` - Null/undefined constants
+- `X.zero`, `X.bigZero` - Zero constants
+- `X.NaN`, `X.inf`, `X.negInf` - Special number constants
+
+#### Collections
+
+- `X.array` - Dynamic arrays
+- `X.set` - Sets
+- `X.map` - Maps
+- `X.tuple` - Fixed-order arrays
+- TypedArrays: `X.u8array`, `X.f32array`, etc.
+
+#### Objects & Classes
+
+- `X.object` - Dynamic objects
+- `X.class` - Class instances
+- `X.date` - Date objects
+- `X.regexp` - RegExp objects
+
+#### Special
+
+- `X.any` - Union types
+- `X.ignore` - Skip serialization
+- `X.constant` - Constant values
+- `X.buffer` - Buffer objects
+
+### Bin Methods
+
+```js
+const bin = X.u8
+
+// Serialization
+bin.serialize(value)        // Convert to Buffer
+bin.parse(buffer)          // Convert from Buffer
+
+// Type operations
+bin.default(value)         // Set default value
+bin.nullable()             // Make nullable
+bin.array(size)           // Create array of this type
+bin.set(size)             // Create set of this type
+
+// Unions
+bin.or(...otherBins)       // Union with other types
+bin.orValue(value)         // Union with specific value
+
+// Highways
+bin.highway(write, read)   // Transform during serialization
+
+// Size calculation
+bin.getSize(value)         // Get serialized size
+```
+
+### Object Struct Methods
+
+```js
+const struct = X.object.struct({
+    id: X.u32,
+    name: X.string8
+})
+
+// Serialization
+struct.serialize(obj)      // Serialize object
+struct.parse(buffer)       // Deserialize to object
+
+// Constructor binding
+struct.withConstructor(fn) // Set constructor for deserialization
+
+// Defaults
+struct.default(obj)        // Set default object
+```
+
+## 🚨 Limitations & Best Practices
+
+### Limitations
+
+1. **Functions**: Cannot serialize functions unless explicitly registered
+2. **Symbols**: Cannot serialize symbols
+3. **Circular References**: Will cause infinite loops
+4. **Class Instances**: Require explicit registration or struct definition
+
+### Best Practices
+
+1. **Use Structs**: Predefine object structures for better performance
+2. **Choose Appropriate Types**: Use smallest type that fits your data
+3. **Handle Errors**: Always wrap serialization in try-catch
+4. **Version Your Data**: Include version numbers in your data structures
+5. **Test Thoroughly**: Test serialization/deserialization with edge cases
+
+### Error Handling
+
+```js
+try {
+    const buffer = X.serialize(data)
+    const restored = X.parse(buffer)
+} catch (error) {
+    if (error instanceof X.StrampProblem) {
+        console.error("Serialization error:", error.message)
+        console.error("Problem value:", error.value)
+        console.error("Expected type:", error.expectedType)
+    }
+}
+```
+
+## 🤝 Contributing
+
+Stramp is open source! Contributions are welcome:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+**Stramp** - Efficient binary serialization for JavaScript/TypeScript

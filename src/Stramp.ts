@@ -225,6 +225,7 @@ class Stramp extends Bin {
         if (value === false) return FALSE;
         if (value === null) return NULL;
         if (value === undefined) return UNDEFINED;
+        if (typeof value === "number" && isNaN(value)) return NAN;
         if (typeof value === "bigint") {
             if (value === Big0) return BIG_ZERO;
             if (value > Big0) {
@@ -353,7 +354,7 @@ export function def(desc: object | symbol, context?: unknown) {
         });
     }
 
-    if(context && typeof context !== "symbol") throw new Error("@def must be used with a Bin instance and/or a symbol when used with classes.");
+    if (context && typeof context !== "symbol") throw new Error("@def must be used with a Bin instance and/or a symbol when used with classes.");
 
     return function (slf: unknown, ctx: {
         name: string | symbol;

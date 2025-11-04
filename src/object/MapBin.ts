@@ -1,6 +1,6 @@
 import {__def, Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
-import {DefaultLengthBin} from "../Defaults";
+import {SizeBin} from "../Defaults";
 
 export class MapBinConstructor<
     KType extends Bin,
@@ -137,4 +137,4 @@ export class MapBinConstructor<
     };
 }
 
-export default new MapBinConstructor(null, null, DefaultLengthBin).init();
+export default new MapBinConstructor(null, null, SizeBin).init();

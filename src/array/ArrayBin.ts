@@ -11,7 +11,7 @@ import Int64Bin from "../number/Int64Bin";
 import Float32Bin from "../number/Float32Bin";
 import Float64Bin from "../number/Float64Bin";
 import {Buffer} from "buffer";
-import {DefaultLengthBin} from "../Defaults";
+import {SizeBin} from "../Defaults";
 
 // type SizedArray<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : SizedArray<T, N, [...R, T]>;
 
@@ -39,7 +39,7 @@ export class ArrayBinConstructor<
         public readonly baseName: string,
         public readonly type: Bin<K> | null = null,
         public readonly fixedSize: number | null = null,
-        public readonly lengthBin: Bin<number> = DefaultLengthBin,
+        public readonly lengthBin: Bin<number> = SizeBin,
         public readonly baseClass: new (...args: unknown[]) => T
     ) {
         super();
@@ -289,7 +289,7 @@ export default new ArrayBinConstructor<"array">(
     "Array",
     null,
     null,
-    DefaultLengthBin,
+    SizeBin,
     Array
 ).copy();
 
@@ -316,7 +316,7 @@ export function makeTypedArrayBin<
         clazz.name,
         type,
         null,
-        DefaultLengthBin,
+        SizeBin,
         <new (...args: unknown[]) => ArrayType extends "array" ? null : ArrayType extends "set" ? null : ArrayType>clazz
     );
 }
@@ -329,7 +329,7 @@ export const SET = new ArrayBinConstructor<"set">(
     "Set",
     null,
     null,
-    DefaultLengthBin,
+    SizeBin,
     Set
 ).copy();
 
