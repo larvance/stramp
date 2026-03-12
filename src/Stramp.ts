@@ -279,9 +279,7 @@ class Stramp extends Bin {
     };
 
     getStruct<T extends object>(self: T, sym = StructSymbol, clazz = self.constructor) {
-        if (!clazz.hasOwnProperty(sym)) {
-            throw new Error(`${clazz.name} instance is not initialized with a structure.`);
-        }
+        if (!clazz.hasOwnProperty(sym)) return new StructBin<T>(self, clazz.name, {});
 
         const data = clazz[sym];
 
