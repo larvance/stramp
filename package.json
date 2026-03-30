@@ -1,9 +1,17 @@
 {
   "name": "stramp",
-  "version": "2.3.8",
+  "version": "2.4.0",
   "description": "A JavaScript library that can convert any kind of data into binary that can be restored",
-  "main": "index.min.js",
-  "types": "types/Stramp.d.ts",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./types/Stramp.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./types/Stramp.d.ts"
+    }
+  },
   "scripts": {
     "test": "tsx tests/test.ts",
     "build": "tsc && rollup -c",

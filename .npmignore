@@ -10,5 +10,4 @@ node_modules
 package-lock.json
 tsconfig.json
 rollup.config.mjs
-dist
 src
