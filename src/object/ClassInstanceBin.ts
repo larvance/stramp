@@ -3,13 +3,13 @@ import {BufferIndex} from "../BufferIndex";
 import ObjectBin from "./ObjectBin";
 import UInt8Bin from "../number/UInt8Bin";
 
-type EmptyClassType = { new(): unknown };
+export type EmptyClassType = { new(): unknown };
 
 class ClassInstanceBinConstructor<
     K extends EmptyClassType[],
     T extends InstanceType<K[number]> = InstanceType<K[number]>
 > extends Bin<T> {
-    name = "date";
+    name = "classInstance";
     classes: EmptyClassType[] = [];
     numBin: Bin<number> = UInt8Bin;
     numBinSize = 1;

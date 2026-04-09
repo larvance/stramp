@@ -52,6 +52,7 @@ console.log(restored) // { name: "John", age: 30, scores: [95, 87, 92] }
     * [Nullable Types](#nullable-types)
     * [Ignore Properties](#ignore-properties)
     * [Constants](#constants)
+    * [Custom Type Resolution](#custom-type-resolution)
   * [⚡ Performance Optimization](#-performance-optimization)
     * [Structs vs Dynamic Objects](#structs-vs-dynamic-objects)
     * [Fixed-size vs Dynamic Arrays](#fixed-size-vs-dynamic-arrays)
@@ -66,6 +67,7 @@ console.log(restored) // { name: "John", age: 30, scores: [95, 87, 92] }
     * [Database Serialization](#database-serialization)
   * [📖 API Reference](#-api-reference)
     * [Core Functions](#core-functions)
+    * [Type Resolution & Customization](#type-resolution--customization)
     * [Available Types](#available-types)
       * [Numbers](#numbers-1)
       * [Strings](#strings-1)
@@ -334,6 +336,42 @@ const fileFormat = X.object.struct({
     data: X.u8.array()
 })
 ```
+
+### Custom Type Resolution
+
+```js
+class Vector2D {
+    constructor(x, y) {
+        this.x = x
+        this.y = y
+    }
+}
+
+const vectorBin = X.object.struct({
+    x: X.f32,
+    y: X.f32
+}).withConstructor(obj => new Vector2D(obj.x, obj.y))
+
+// Constructor -> Bin mapping (highest custom priority in X.getTypeOf)
+X.pinClassToBin(Vector2D, vectorBin)
+
+const detected = X.getTypeOf(new Vector2D(1, 2))
+console.log(detected === vectorBin) // true
+
+// Remove constructor mapping
+X.unpinClassFromBin(Vector2D)
+
+// Register a fallback custom bin (checked after built-ins)
+X.addCustomBin(vectorBin)
+X.removeCustomBin(vectorBin)
+```
+
+`X.getTypeOf(value)` checks types in this order:
+
+1. Built-in primitive/collection/object detection
+2. `X.class.add(...)` registered classes
+3. `X.pinClassToBin(constructor, bin)` mappings
+4. `X.addCustomBin(bin)` fallback bins (`findProblem` is used to test matches)
 
 ## ⚡ Performance Optimization
 
@@ -632,7 +670,25 @@ X.parse(buffer)             // Convert Buffer back to value
 // Type detection
 X.getTypeOf(value)          // Get appropriate Bin for value
 X.getStrictTypeOf(value)    // Get exact Bin for value
+
+// Custom type routing
+X.pinClassToBin(MyClass, myBin) // Force constructor -> Bin mapping
+X.unpinClassFromBin(MyClass)    // Remove constructor mapping
+X.addCustomBin(myBin)           // Add fallback bin for X.getTypeOf
+X.removeCustomBin(myBin)        // Remove fallback bin
 ```
+
+### Type Resolution & Customization
+
+`X.pinClassToBin(constructor, bin)` maps a specific class constructor directly to a bin.
+
+`X.unpinClassFromBin(constructor)` removes that direct mapping.
+
+`X.addCustomBin(bin)` adds a fallback bin used by `X.getTypeOf` when built-ins and constructor mapping do not match.
+
+`X.removeCustomBin(bin)` removes a previously added fallback bin.
+
+Use `pinClassToBin` when you want deterministic constructor-based routing. Use `addCustomBin` when a bin should match by validation (`findProblem`) instead.
 
 ### Available Types
 

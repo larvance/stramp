@@ -51,19 +51,19 @@ export class BufferIndex {
     };
 
     readUInt8() {
-        return this.buffer.readUint8(this.inc());
+        return this.buffer.readUInt8(this.inc());
     };
 
     readUInt16() {
-        return this.buffer.readUint16LE(this.inc(2));
+        return this.buffer.readUInt16LE(this.inc(2));
     };
 
     readUInt32() {
-        return this.buffer.readUint32LE(this.inc(4));
+        return this.buffer.readUInt32LE(this.inc(4));
     };
 
     readUInt64() {
-        return this.buffer.readBigUint64LE(this.inc(8));
+        return this.buffer.readBigUInt64LE(this.inc(8)) as bigint;
     };
 
     readInt8() {
@@ -79,7 +79,7 @@ export class BufferIndex {
     };
 
     readInt64() {
-        return this.buffer.readBigInt64LE(this.inc(8));
+        return this.buffer.readBigInt64LE(this.inc(8)) as bigint;
     };
 
     readFloat32() {
@@ -103,7 +103,7 @@ export class BufferIndex {
     };
 
     writeUInt64(value: number | bigint) {
-        this.buffer.writeBigUInt64LE(BigInt(value), this.inc(8));
+        (this.buffer as any).writeBigUInt64LE(BigInt(value), this.inc(8));
     };
 
     writeInt8(value: number) {
@@ -119,7 +119,7 @@ export class BufferIndex {
     };
 
     writeInt64(value: number | bigint) {
-        this.buffer.writeBigInt64LE(BigInt(value), this.inc(8));
+        (this.buffer as any).writeBigInt64LE(BigInt(value), this.inc(8));
     };
 
     writeFloat32(value: number) {
@@ -142,7 +142,7 @@ export class BufferIndex {
         return this.buffer.subarray(this.index);
     };
 
-    toString(encoding: BufferEncoding, length: number) {
-        return this.buffer.toString(encoding, this.index, this.index += length);
+    toString(encoding: string, length: number) {
+        return this.buffer.toString(encoding as any, this.index, this.index += length);
     };
 }

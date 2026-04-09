@@ -61,6 +61,8 @@ import {Big0} from "./Utils";
 import {StructBin} from "./misc/StructBin";
 import {TupleBinConstructor} from "./array/TupleBin";
 
+type ClassType<T = unknown> = { new(...args: unknown[]): T };
+
 class Stramp extends Bin {
     name = "any";
     sample = null;
@@ -131,6 +133,9 @@ class Stramp extends Bin {
     any = ANY;
     ignore = IGNORE as typeof IGNORE;
     constant = CONSTANT as typeof CONSTANT;
+
+    customBinMap = new Map<ClassType, Bin>();
+    customBins = new Set<Bin>();
 
     bindStruct() {
         return getBindStruct();
@@ -241,10 +246,7 @@ class Stramp extends Bin {
         if (typeof value === "string") {
             if (value.length <= U8.max) return S8;
             if (value.length <= U16.max) return S16;
-            if (value.length <= U32.max) return S32;
-
-            // This is an impossible case because of JavaScript's string length limit, but it's here for completeness
-            return C_STRING;
+            return S32;
         }
         if (Array.isArray(value)) return ARRAY;
         if (value instanceof Date) return DATE;
@@ -262,7 +264,14 @@ class Stramp extends Bin {
         if (value instanceof Float32Array) return F32ARRAY;
         if (value instanceof Float64Array) return F64ARRAY;
         if (value instanceof RegExp) return REGEXP;
-        if (typeof value === "object") return value.constructor === Object ? OBJECT : CLASS_INSTANCE;
+        if (typeof value === "object") {
+            const constructor = value.constructor as ClassType;
+            if (constructor === Object) return OBJECT;
+            if (CLASS_INSTANCE.classes.includes(constructor)) return CLASS_INSTANCE;
+            if (this.customBinMap.has(constructor)) return this.customBinMap.get(constructor)!;
+        }
+
+        for (const bin of this.customBins) if (!bin.findProblem(value)) return bin;
 
         return null;
     };
@@ -296,6 +305,26 @@ class Stramp extends Bin {
         }
 
         return clazz[sym] = new StructBin<T>(self, clazz.name, <Record<string, Bin>>data);
+    };
+
+    pinClassToBin<T>(constructor: ClassType<T>, bin: Bin<T>) {
+        this.customBinMap.set(constructor, bin);
+        return this;
+    };
+
+    unpinClassFromBin(constructor: ClassType) {
+        this.customBinMap.delete(constructor);
+        return this;
+    };
+
+    addCustomBin(bin: Bin) {
+        this.customBins.add(bin);
+        return this;
+    };
+
+    removeCustomBin(bin: Bin) {
+        this.customBins.delete(bin);
+        return this;
     };
 
     def = def;

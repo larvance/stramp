@@ -1,3 +1,4 @@
+import {Buffer} from "buffer";
 import {BufferIndex} from "./BufferIndex";
 import {StrampProblem} from "./StrampProblem";
 import type {AnyBinConstructor} from "./any/AnyBin";

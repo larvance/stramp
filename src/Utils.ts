@@ -1,3 +1,4 @@
+import {Buffer} from "buffer";
 import {OptionalBin} from "./OptionalBin";
 
 export const Big0 = BigInt(0);

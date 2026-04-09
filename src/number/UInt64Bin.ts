@@ -13,8 +13,8 @@ class UInt64BinConstructor extends BigIntBaseBin {
         bind.writeUInt64(BigInt(value));
     };
 
-    read(bind: BufferIndex) {
-        return bind.readUInt64();
+    read(bind: BufferIndex, base?: bigint | number) {
+        return bind.readUInt64() as bigint;
     };
 }
 
