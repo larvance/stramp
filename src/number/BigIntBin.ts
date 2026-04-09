@@ -13,11 +13,11 @@ class BigIntBinConstructor extends Bin<bigint> {
     };
 
     read(bind: BufferIndex) {
-        return (bind.shift() ? -BigMinusOne : BigOne) * UBigIntBin.read(bind);
+        return (bind.shift() ? BigMinusOne : BigOne) * UBigIntBin.read(bind);
     };
 
     unsafeSize(value: bigint) {
-        return UBigIntBin.unsafeSize(value) + 1;
+        return UBigIntBin.unsafeSize(value < Big0 ? -value : value) + 1;
     };
 
     findProblem(value: unknown) {

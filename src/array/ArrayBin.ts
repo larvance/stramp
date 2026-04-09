@@ -1,4 +1,4 @@
-import {__def, Bin} from "../Bin";
+import {__def, Bin, graphGetReadReference, graphReadReference, graphSetReadReference, graphSizeReference, graphWriteReference} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import UInt8Bin from "../number/UInt8Bin";
 import UInt16Bin from "../number/UInt16Bin";
@@ -65,6 +65,9 @@ export class ArrayBinConstructor<
     };
 
     unsafeWrite(bind: BufferIndex, value: T): void {
+        const graph = graphWriteReference(bind, value);
+        if (graph?.kind === "ref") return;
+
         if (!this.fixedSize) {
             let length: number = "size" in value && typeof value.size === "number"
                 ? value.size
@@ -80,6 +83,9 @@ export class ArrayBinConstructor<
     };
 
     read(bind: BufferIndex, base: T | null = null): T {
+        const graph = graphReadReference(bind);
+        if (graph?.kind === "ref") return graphGetReadReference<T>(graph.id);
+
         const length = this.fixedSize ?? this.lengthBin.read(bind);
 
         if (base !== null) {
@@ -101,7 +107,11 @@ export class ArrayBinConstructor<
             }
         }
 
-        const result = base !== null ? <unknown[] | Set<unknown>><unknown>base : [];
+        const isSetBase = this.baseName === "Set";
+        const result = base !== null
+            ? <unknown[] | Set<unknown>><unknown>base
+            : <unknown[] | Set<unknown>><unknown>(isSetBase ? new Set() : []);
+        if (graph?.kind === "inline") graphSetReadReference(graph.id, result);
 
         const type = this.type || __def.Stramp;
         for (let i = 0; i < length; i++) {
@@ -111,11 +121,23 @@ export class ArrayBinConstructor<
             else (<unknown[]>result)[i] = v;
         }
 
-        return this._baseClass === Array || base !== null ? <T><unknown>result : new this.baseClass(result);
+        const finalResult = this._baseClass === Array || isSetBase || base !== null
+            ? <T><unknown>result
+            : <T><unknown>new this.baseClass(result);
+
+        if (graph?.kind === "inline" && finalResult !== <T><unknown>result) {
+            graphSetReadReference(graph.id, finalResult);
+        }
+
+        return finalResult;
     };
 
     unsafeSize(value: T): number {
-        let size = this.fixedSize ? 0 : this.lengthBinSize;
+        const graph = graphSizeReference(value);
+        const graphSize = graph ? 1 + 4 : 0;
+        if (graph?.kind === "ref") return graphSize;
+
+        let size = graphSize + (this.fixedSize ? 0 : this.lengthBinSize);
         const type = this.type || __def.Stramp;
         const arr = Array.from(value);
         const length = arr.length;
@@ -318,7 +340,7 @@ export function makeTypedArrayBin<
         null,
         SizeBin,
         <new (...args: unknown[]) => ArrayType extends "array" ? null : ArrayType extends "set" ? null : ArrayType>clazz
-    );
+    ).init();
 }
 
 export const SET = new ArrayBinConstructor<"set">(

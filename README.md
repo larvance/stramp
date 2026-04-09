@@ -787,7 +787,6 @@ struct.default(obj)        // Set default object
 
 1. **Functions**: Cannot serialize functions unless explicitly registered
 2. **Symbols**: Cannot serialize symbols
-3. **Circular References**: Will cause infinite loops
 4. **Class Instances**: Require explicit registration or struct definition
 
 ### Best Practices

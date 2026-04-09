@@ -1,4 +1,4 @@
-import {__def, Bin} from "../Bin";
+import {__def, Bin, graphGetReadReference, graphReadReference, graphSetReadReference, graphSizeReference, graphWriteReference} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import ObjectStructBinConstructor from "./ObjectStructBin";
 import IntBaseBin from "../number/base/IntBaseBin";
@@ -31,6 +31,9 @@ export class ObjectBinConstructor<
     };
 
     unsafeWrite(bind: BufferIndex, value: T) {
+        const graph = graphWriteReference(bind, value);
+        if (graph?.kind === "ref") return;
+
         const keys = Object.keys(value);
         const length = keys.length;
         this.lengthBin.unsafeWrite(bind, length);
@@ -44,8 +47,12 @@ export class ObjectBinConstructor<
     };
 
     read(bind: BufferIndex, base: T | null = null): T {
+        const graph = graphReadReference(bind);
+        if (graph?.kind === "ref") return graphGetReadReference<T>(graph.id);
+
         const length = this.lengthBin.read(bind);
         const result = base || <T>{};
+        if (graph?.kind === "inline") graphSetReadReference(graph.id, result);
         const valueType = this.valueType ?? __def.Stramp;
 
         for (let i = 0; i < length; i++) {
@@ -60,8 +67,12 @@ export class ObjectBinConstructor<
     };
 
     unsafeSize(value: T): number {
+        const graph = graphSizeReference(value);
+        const graphSize = graph ? 1 + 4 : 0;
+        if (graph?.kind === "ref") return graphSize;
+
         const keys = Object.keys(value);
-        let size = this.lengthBinSize;
+        let size = graphSize + this.lengthBinSize;
         const valueType = this.valueType ?? __def.Stramp;
 
         for (let i = 0; i < keys.length; i++) {

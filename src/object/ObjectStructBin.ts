@@ -1,4 +1,4 @@
-import {__def, Bin} from "../Bin";
+import {__def, Bin, graphGetReadReference, graphReadReference, graphSetReadReference, graphSizeReference, graphWriteReference} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import {OptionalBin} from "../OptionalBin";
 import {IsOptionalBin} from "../Utils";
@@ -20,7 +20,7 @@ export default class ObjectStructBinConstructor<
     private isLegacy = false;
 
     constructor(
-        public structData: StructData, // not readonly because some people might want to use it recursively.
+        public structData: StructData, // not readonly because some people might want to use it circularly.
         public readonly classConstructor: ((obj: ExtractStruct<StructData>) => T),
         public readonly baseName: string | null,
         private _finished = true
@@ -54,6 +54,9 @@ export default class ObjectStructBinConstructor<
 
     unsafeWrite(bind: BufferIndex, value: T) {
         this.assertFinished();
+        const graph = graphWriteReference(bind, value);
+        if (graph?.kind === "ref") return;
+
         const structData = this.structData!;
         const keys = Object.keys(structData);
 
@@ -66,9 +69,13 @@ export default class ObjectStructBinConstructor<
 
     read(bind: BufferIndex, base: T | null = null): T {
         this.assertFinished();
+        const graph = graphReadReference(bind);
+        if (graph?.kind === "ref") return graphGetReadReference<T>(graph.id);
+
         const structData = this.structData!;
         const keys = Object.keys(structData);
         const result = base || <StructData>{};
+        if (graph?.kind === "inline") graphSetReadReference(graph.id, result);
 
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -81,9 +88,13 @@ export default class ObjectStructBinConstructor<
 
     unsafeSize(value: T): number {
         this.assertFinished();
+        const graph = graphSizeReference(value);
+        const graphSize = graph ? 1 + 4 : 0;
+        if (graph?.kind === "ref") return graphSize;
+
         const structData = this.structData!;
         const keys = Object.keys(structData);
-        let size = 0;
+        let size = graphSize;
 
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];

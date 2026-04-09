@@ -1,4 +1,4 @@
-import {__def, Bin} from "../Bin";
+import {__def, Bin, graphGetReadReference, graphReadReference, graphSetReadReference, graphSizeReference, graphWriteReference} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import {SizeBin} from "../Defaults";
 
@@ -26,6 +26,9 @@ export class MapBinConstructor<
     };
 
     unsafeWrite(bind: BufferIndex, map: T) {
+        const graph = graphWriteReference(bind, map);
+        if (graph?.kind === "ref") return;
+
         const length = map.size;
         this.lengthBin.unsafeWrite(bind, length);
         const keyType = this.keyType ?? __def.Stramp;
@@ -38,8 +41,12 @@ export class MapBinConstructor<
     };
 
     read(bind: BufferIndex, base: T | null = null): T {
+        const graph = graphReadReference(bind);
+        if (graph?.kind === "ref") return graphGetReadReference<T>(graph.id);
+
         const length = this.lengthBin.read(bind);
         const result = base || <T>new Map;
+        if (graph?.kind === "inline") graphSetReadReference(graph.id, result);
         const keyType = this.keyType ?? __def.Stramp;
         const valueType = this.valueType ?? __def.Stramp;
 
@@ -52,10 +59,14 @@ export class MapBinConstructor<
     };
 
     unsafeSize(map: T): number {
+        const graph = graphSizeReference(map);
+        const graphSize = graph ? 1 + 4 : 0;
+        if (graph?.kind === "ref") return graphSize;
+
         const keyType = this.keyType ?? __def.Stramp;
         const valueType = this.valueType ?? __def.Stramp;
 
-        let size = this.lengthBinSize;
+        let size = graphSize + this.lengthBinSize;
 
         for (const [key, value] of map) {
             size += keyType.unsafeSize(key);

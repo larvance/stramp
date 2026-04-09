@@ -1,4 +1,4 @@
-import {Bin} from "../Bin";
+import {Bin, graphGetReadReference, graphReadReference, graphSetReadReference, graphSizeReference, graphWriteReference} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 
 export class TupleBinConstructor<T extends unknown[]> extends Bin<T> {
@@ -22,6 +22,9 @@ export class TupleBinConstructor<T extends unknown[]> extends Bin<T> {
     };
 
     unsafeWrite(bind: BufferIndex, value: T): void {
+        const graph = graphWriteReference(bind, value);
+        if (graph?.kind === "ref") return;
+
         const arr = Array.from(value);
         const types = this.types!;
         for (let i = 0; i < types.length; i++) {
@@ -30,10 +33,14 @@ export class TupleBinConstructor<T extends unknown[]> extends Bin<T> {
     };
 
     read(bind: BufferIndex, base: T | null = null): T {
+        const graph = graphReadReference(bind);
+        if (graph?.kind === "ref") return graphGetReadReference<T>(graph.id);
+
         const types = this.types!;
         const length = types.length;
 
         const result = base || <T>Array(length);
+        if (graph?.kind === "inline") graphSetReadReference(graph.id, result);
 
         for (let i = 0; i < length; i++) {
             result[i] = types[i].read(bind);
@@ -43,7 +50,11 @@ export class TupleBinConstructor<T extends unknown[]> extends Bin<T> {
     };
 
     unsafeSize(value: T): number {
-        let size = 0;
+        const graph = graphSizeReference(value);
+        const graphSize = graph ? 1 + 4 : 0;
+        if (graph?.kind === "ref") return graphSize;
+
+        let size = graphSize;
         const types = this.types!;
         const arr = Array.from(value);
 
