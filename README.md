@@ -142,7 +142,7 @@ X.string16.serialize("Longer string") // 2 bytes length prefix
 X.string32.serialize("Very long string...") // 4 bytes length prefix
 
 // Null-terminated strings
-X.cstring.serialize("Hello\0") // C-style null-terminated
+X.cstring.serialize("Hello") // C-style null-terminated (the terminator is written automatically)
 
 // Aliases
 X.s8.serialize("Hello")    // Same as string8
@@ -225,13 +225,13 @@ const userMap = new Map([
 X.serialize(userMap) // Automatically handles Map
 
 // Typed maps
-const userType = X.map.struct({
-    key: X.string8,
-    value: X.object.struct({
+const userType = X.map.typed(
+    X.string8,
+    X.object.struct({
         age: X.u8,
         score: X.u8
     })
-})
+)
 ```
 
 ### Tuples (Fixed-order arrays)
@@ -352,7 +352,7 @@ const vectorBin = X.object.struct({
     y: X.f32
 }).withConstructor(obj => new Vector2D(obj.x, obj.y))
 
-// Constructor -> Bin mapping (highest custom priority in X.getTypeOf)
+// Constructor -> Bin mapping (checked after built-ins and X.class.add(...))
 X.pinClassToBin(Vector2D, vectorBin)
 
 const detected = X.getTypeOf(new Vector2D(1, 2))
@@ -805,11 +805,14 @@ try {
     const buffer = X.serialize(data)
     const restored = X.parse(buffer)
 } catch (error) {
-    if (error instanceof X.StrampProblem) {
-        console.error("Serialization error:", error.message)
-        console.error("Problem value:", error.value)
-        console.error("Expected type:", error.expectedType)
-    }
+    // serialize/parse throw regular Error values with formatted messages
+    console.error("Serialization error:", error)
+}
+
+// If you need structured validation details, use findProblem before serializing
+const problem = X.getTypeOf(data)?.findProblem(data)
+if (problem) {
+    console.error(problem.toString())
 }
 ```
 
