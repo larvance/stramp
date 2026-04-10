@@ -360,7 +360,11 @@ function applyStructSetter(clazz: object, key: string | symbol, val: object | nu
 
 export function def(desc: Bin, ...symbols: symbol[]): (_: unknown, context: unknown) => void;
 export function def(...symbols: symbol[]): (_: unknown, context: unknown) => void;
-export function def(desc: object, context: unknown): void;
+export function def(desc: object, context: {
+    kind: "field";
+    name: string | symbol;
+    addInitializer(init: Function): void;
+}): void;
 export function def(descOrSymbol?: object | symbol, contextOrSymbol?: unknown, ...restSymbols: symbol[]) {
     if (typeof contextOrSymbol === "string" || typeof contextOrSymbol === "symbol") {
         isLegacyDecorator = true;
