@@ -310,8 +310,8 @@ export abstract class Bin<T = unknown> {
         return <ObjectBinConstructor<Bin<T>>>__def.Stramp.object.keyTyped(keyBin).valueTyped(this);
     };
 
-    to<K>(...others: Bin<K>[]) {
-        return __def.ArrayBin.struct([this, ...others] as const)
+    to<const Others extends readonly Bin[]>(...others: Others) {
+        return __def.ArrayBin.struct([this, ...others] as const);
     };
 
     highway<Output>(
@@ -322,5 +322,10 @@ export abstract class Bin<T = unknown> {
         name = `Highway<${this.name}>`
     ) {
         return <HighwayBinConstructor<T, Output>>new __def.HighwayBin(this, write, read, name, sample, adaptor);
+    };
+
+    getStrictTypeOf<K>(_: K): Bin;
+    getStrictTypeOf(_: unknown): Bin {
+        return this;
     };
 }

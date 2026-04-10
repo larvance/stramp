@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import X, {array as ARRAY_BIN, set as SET_BIN} from "../src/Stramp";
+import X from "../src/Stramp";
 import {Bin} from "../src/Bin";
 
 type TestCase = {
@@ -432,18 +432,16 @@ test("circular: object-key map/set identity links", () => {
     const rootStruct = X.object.struct({
         holder: X.object,
         map: X.map,
-        set: SET_BIN
+        set: X.setBin
     });
 
     const node: Record<string, unknown> = {name: "node"};
     const holder = {node};
-    const map = new Map<unknown, unknown>([[node, node]]);
-    const set = new Set<unknown>([node]);
+    const map = new Map([[node, node]]);
+    const set = new Set([node]);
 
     const decoded = rootStruct.parse(
-        rootStruct.serialize({holder, map, set}, {circular: "auto"}),
-        null,
-        {circular: "auto"}
+        rootStruct.serialize({holder, map, set}, {circular: "auto"}), null, {circular: "auto"}
     ) as {
         holder: { node: Record<string, unknown> };
         map: Map<unknown, unknown>;
@@ -460,9 +458,9 @@ test(
     () => {
         const circularStruct = X.object.struct({
             root: X.object,
-            list: ARRAY_BIN,
+            list: X.arrayBin,
             map: X.map,
-            set: SET_BIN
+            set: X.setBin
         });
 
         const root: Record<string, unknown> = {id: "root"};
@@ -521,7 +519,6 @@ async function run() {
     let passed = 0;
 
     for (const t of tests) {
-
         try {
             await t.run();
             passed++;

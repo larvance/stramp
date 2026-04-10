@@ -1,6 +1,6 @@
 {
   "name": "stramp",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "A JavaScript library that can convert any kind of data into binary that can be restored",
   "type": "module",
   "main": "./dist/index.js",
@@ -15,6 +15,7 @@
   "scripts": {
     "test": "tsx tests/test.ts",
     "build": "tsc && rollup -c",
+    "lint": "tsc --noEmit",
     "clean": "node tests/clean.js",
     "prepublishOnly": "npm run build",
     "postpublish": "npm run clean"

@@ -1,5 +1,6 @@
 import {Buffer} from "buffer";
 import {OptionalBin} from "./OptionalBin";
+import {Bin} from "./Bin";
 
 export const Big0 = BigInt(0);
 export const BigMin = BigInt("-9223372036854775808");
@@ -32,3 +33,8 @@ export type IsOptionalBin<T> = T extends OptionalBin ? true : false;
 export function isBuffer(buffer: object): buffer is Buffer {
     return buffer instanceof Buffer || "_isBuffer" in buffer;
 }
+
+export type ClassType<T = unknown> = { new(...args: unknown[]): T };
+export type BinValues<TBins extends readonly Bin[]> = {
+    [K in keyof TBins]: TBins[K] extends Bin<infer V> ? V : never;
+};

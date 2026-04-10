@@ -43,7 +43,7 @@ export default class ObjectStructBinConstructor<
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             let v = this.structData[key];
-            if (!(v instanceof Bin)) v = __def.Stramp.getStrictTypeOf(v);
+            if (!(v instanceof Bin)) v = __def.Stramp.getStrictTypeOf(v).default(v);
             newStructData[key] = v;
         }
 
@@ -213,7 +213,7 @@ export default class ObjectStructBinConstructor<
                 (<object>this.structData)[context.name] = desc;
             });
         };
-    }
+    };
 
     copy(init = true) {
         const o = <this>new ObjectStructBinConstructor(

@@ -57,11 +57,9 @@ import CONSTANT, {ConstantBinConstructor} from "./misc/ConstantBin";
 import {HighwayBinConstructor} from "./misc/HighwayBin";
 import {AnyValueBinConstructor} from "./any/AnyValueBin";
 import {DefaultsToBin} from "./misc/DefaultsToBin";
-import {Big0} from "./Utils";
+import {Big0, BinValues, ClassType} from "./Utils";
 import {StructBin} from "./misc/StructBin";
 import {TupleBinConstructor} from "./array/TupleBin";
-
-type ClassType<T = unknown> = { new(...args: unknown[]): T };
 
 class Stramp extends Bin {
     name = "any";
@@ -124,6 +122,8 @@ class Stramp extends Bin {
     f64array = F64ARRAY as typeof F64ARRAY;
 
     object = OBJECT as typeof OBJECT;
+    arrayBin = ARRAY as typeof ARRAY;
+    setBin = SET as typeof SET;
     map = MAP as typeof MAP;
     class = CLASS_INSTANCE as typeof CLASS_INSTANCE;
 
@@ -141,7 +141,7 @@ class Stramp extends Bin {
         return getBindStruct();
     };
 
-    tuple(...types: Bin[]) {
+    tuple<const Types extends readonly Bin[]>(...types: Types): TupleBinConstructor<[...BinValues<Types>]> {
         return ARRAY.struct(types);
     };
 
@@ -276,15 +276,10 @@ class Stramp extends Bin {
         return null;
     };
 
-    getStrictTypeOf<T>(value: T): Bin<T> | null;
-
-    getStrictTypeOf(value: unknown) {
-        const base = this.getTypeOf(value);
-        if ("struct" in base && typeof base.struct === "function") {
-            return base.struct(value);
-        }
-
-        return base;
+    getStrictTypeOf<T>(value: T) {
+        const type = this.getTypeOf(value);
+        if (!type) throw new Error("Unknown type");
+        return type.getStrictTypeOf(value) as Bin<T>;
     };
 
     getStruct<T extends object>(self: T, sym = StructSymbol, clazz = self.constructor) {

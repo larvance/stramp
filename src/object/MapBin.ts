@@ -1,4 +1,12 @@
-import {__def, Bin, graphGetReadReference, graphReadReference, graphSetReadReference, graphSizeReference, graphWriteReference} from "../Bin";
+import {
+    __def,
+    Bin,
+    graphGetReadReference,
+    graphReadReference,
+    graphSetReadReference,
+    graphSizeReference,
+    graphWriteReference
+} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import {SizeBin} from "../Defaults";
 

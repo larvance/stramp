@@ -1,4 +1,12 @@
-import {__def, Bin, graphGetReadReference, graphReadReference, graphSetReadReference, graphSizeReference, graphWriteReference} from "../Bin";
+import {
+    __def,
+    Bin,
+    graphGetReadReference,
+    graphReadReference,
+    graphSetReadReference,
+    graphSizeReference,
+    graphWriteReference
+} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import UInt8Bin from "../number/UInt8Bin";
 import UInt16Bin from "../number/UInt16Bin";
@@ -12,6 +20,7 @@ import Float32Bin from "../number/Float32Bin";
 import Float64Bin from "../number/Float64Bin";
 import {Buffer} from "buffer";
 import {SizeBin} from "../Defaults";
+import type {TupleBinConstructor} from "./TupleBin";
 
 // type SizedArray<T, N extends number, R extends T[] = []> = R["length"] extends N ? R : SizedArray<T, N, [...R, T]>;
 
@@ -275,15 +284,37 @@ export class ArrayBinConstructor<
         return o;
     };
 
-    struct<N extends unknown[]>(types: Bin<N[number]>[]) {
-        return new __def.TupleStructBin<N>(
+    struct<const Types extends readonly Bin[]>(types: Types): TupleBinConstructor<[
+        ...{
+            [K in keyof Types]: Types[K] extends Bin<infer V> ? V : never;
+        }
+    ]> {
+        type TupleValues = {
+            [K in keyof Types]: Types[K] extends Bin<infer V> ? V : never;
+        };
+
+        return new __def.TupleStructBin<[...TupleValues]>(
             this.typesName,
             this.typeName,
             this.fixedName,
             this.fixedTypeName,
             this.baseName,
-            types
+            [...types] as Bin<[...TupleValues][number]>[]
         );
+    };
+
+    getStrictTypeOf<K>(v: K) {
+        if (v === null || typeof v !== "object" || !(Symbol.iterator in v)) return this;
+
+        const valueType = this.type || __def.Stramp;
+        const values = Array.from(v as Iterable<unknown>);
+        const types: Bin[] = new Array(values.length);
+
+        for (let i = 0; i < values.length; i++) {
+            types[i] = valueType.getStrictTypeOf(values[i]);
+        }
+
+        return this.struct(types);
     };
 
     copy(init = true) {

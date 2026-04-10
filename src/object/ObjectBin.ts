@@ -1,8 +1,16 @@
-import {__def, Bin, graphGetReadReference, graphReadReference, graphSetReadReference, graphSizeReference, graphWriteReference} from "../Bin";
+import {
+    __def,
+    Bin,
+    graphGetReadReference,
+    graphReadReference,
+    graphSetReadReference,
+    graphSizeReference,
+    graphWriteReference
+} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
 import ObjectStructBinConstructor from "./ObjectStructBin";
 import IntBaseBin from "../number/base/IntBaseBin";
-import {SizeBin, DefaultStringBin} from "../Defaults";
+import {DefaultStringBin, SizeBin} from "../Defaults";
 import {StringBin} from "../string/StringBin";
 
 export class ObjectBinConstructor<
@@ -169,10 +177,18 @@ export class ObjectBinConstructor<
         return o;
     };
 
-    struct<T extends { [k: string]: Bin }>(data: T) {
-        return <ObjectStructBinConstructor<T> & {
-            def: undefined
-        }>new ObjectStructBinConstructor(data, r => r, this.baseName).init();
+    struct<T extends { [k: string]: unknown }>(data: T) {
+        type V = {
+            [K in keyof T]: T[K] extends Bin ? T[K] : Bin<T[K]>
+        };
+        return <ObjectStructBinConstructor<V> & {
+            def: never
+        }>new ObjectStructBinConstructor(data as V, r => r, this.baseName).init();
+    };
+
+    getStrictTypeOf<K>(v: K): Bin {
+        if (v === null || typeof v !== "object") return this;
+        return this.struct(v as {[k: string]: unknown});
     };
 
     copy(init = true) {
