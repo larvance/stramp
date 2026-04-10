@@ -455,6 +455,11 @@ const buffer = userBin.serialize(user) // TypeScript ensures correct types
 
 ### Decorators (Experimental)
 
+`def` now supports multiple struct symbols:
+
+- `def(bin, ...symbols)` - bind a typed field to one or more struct symbols
+- `def(...symbols)` - bind a nested field (no explicit bin) to one or more struct symbols
+
 ```ts
 import X, {def} from "stramp"
 
@@ -475,6 +480,26 @@ class GameEntity {
 const entity = new GameEntity(10, 20)
 const struct = X.getStruct(entity)
 const buffer = struct.serialize(entity)
+```
+
+```ts
+import X from "stramp"
+
+const networkSymbol = Symbol("network")
+const saveSymbol = Symbol("save")
+
+class Child {
+    @X.def(X.u8) score = 0
+}
+
+class Player {
+    @X.def(X.u8, networkSymbol, saveSymbol) id = 0
+    @X.def(networkSymbol, saveSymbol) child = new Child()
+}
+
+const player = new Player()
+const networkStruct = X.getStruct(player, networkSymbol)
+const saveStruct = X.getStruct(player, saveSymbol)
 ```
 
 ### Multiple Struct Bindings

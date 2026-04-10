@@ -395,6 +395,36 @@ test("decorators: bindStruct supports inheritance and base parse", () => {
     assertEquivalent({x: base.x, y: base.y, z: base.z, health: base.health}, {x: 10, y: 20, z: 0, health: 75});
 });
 
+test("decorators: def supports multiple symbols with and without explicit bin", () => {
+    const symA = Symbol("symA");
+    const symB = Symbol("symB");
+
+    class Child {
+        @X.def(X.u8) score = 0;
+    }
+
+    class Holder {
+        @X.def(X.u8, symA, symB) id = 0;
+        @X.def(symA, symB) child = new Child();
+    }
+
+    const value = new Holder();
+    value.id = 12;
+    value.child.score = 200;
+
+    const aStruct = X.getStruct(value, symA);
+    const aBase = new Holder();
+    aStruct.parse(aStruct.serialize(value), aBase);
+    assert.equal(aBase.id, 12);
+    assert.equal(aBase.child.score, 200);
+
+    const bStruct = X.getStruct(value, symB);
+    const bBase = new Holder();
+    bStruct.parse(bStruct.serialize(value), bBase);
+    assert.equal(bBase.id, 12);
+    assert.equal(bBase.child.score, 200);
+});
+
 test("errors: StrampProblem formatting is informative", () => {
     const userBin = X.object.struct({age: X.u8});
     const problem = userBin.findProblem({age: 300}, true);
