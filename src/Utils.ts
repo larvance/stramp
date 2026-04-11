@@ -38,3 +38,94 @@ export type ClassType<T = unknown> = { new(...args: unknown[]): T };
 export type BinValues<TBins extends readonly Bin[]> = {
     [K in keyof TBins]: TBins[K] extends Bin<infer V> ? V : never;
 };
+
+export class SortedMap<K, V> {
+    private _keys: K[] = [];
+    private _vals: V[] = [];
+
+    constructor(private readonly compare: (a: K, b: K) => number = defaultCompare) {
+    };
+
+    set(key: K, value: V): this {
+        const idx = lowerBound(this._keys, key, this.compare);
+        if (idx < this._keys.length && this.compare(this._keys[idx], key) === 0) {
+            this._vals[idx] = value;
+        } else {
+            this._keys.splice(idx, 0, key);
+            this._vals.splice(idx, 0, value);
+        }
+        return this;
+    };
+
+    get(key: K): V | undefined {
+        const idx = lowerBound(this._keys, key, this.compare);
+        if (idx < this._keys.length && this.compare(this._keys[idx], key) === 0) {
+            return this._vals[idx];
+        }
+        return undefined;
+    };
+
+    has(key: K): boolean {
+        const idx = lowerBound(this._keys, key, this.compare);
+        return idx < this._keys.length && this.compare(this._keys[idx], key) === 0;
+    };
+
+    delete(key: K): boolean {
+        const idx = lowerBound(this._keys, key, this.compare);
+        if (idx >= this._keys.length || this.compare(this._keys[idx], key) !== 0) return false;
+        this._keys.splice(idx, 1);
+        this._vals.splice(idx, 1);
+        return true;
+    };
+
+    get size(): number {
+        return this._keys.length;
+    };
+
+    * entries(): IterableIterator<[K, V]> {
+        for (let i = 0; i < this._keys.length; i++) {
+            yield [this._keys[i], this._vals[i]];
+        }
+    };
+
+    * keys(): IterableIterator<K> {
+        yield* this._keys;
+    };
+
+    * values(): IterableIterator<V> {
+        yield* this._vals;
+    };
+
+    [Symbol.iterator](): IterableIterator<[K, V]> {
+        return this.entries();
+    };
+
+    forEach(cb: (value: V, key: K, map: this) => void): void {
+        for (let i = 0; i < this._keys.length; i++) {
+            cb(this._vals[i], this._keys[i], this);
+        }
+    };
+
+    * slice(from: K, to: K): IterableIterator<[K, V]> {
+        const start = lowerBound(this._keys, from, this.compare);
+        const end = lowerBound(this._keys, to, this.compare);
+        for (let i = start; i < end; i++) {
+            yield [this._keys[i], this._vals[i]];
+        }
+    };
+}
+
+function defaultCompare<K>(a: K, b: K): number {
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+
+function lowerBound<K>(keys: K[], key: K, compare: (a: K, b: K) => number): number {
+    let lo = 0;
+    let hi = keys.length;
+    while (lo < hi) {
+        const mid = (lo + hi) >>> 1;
+        if (compare(keys[mid], key) < 0) lo = mid + 1;
+        else hi = mid;
+    }
+    return lo;
+}

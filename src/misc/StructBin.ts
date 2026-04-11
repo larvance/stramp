@@ -1,25 +1,14 @@
 import {__def, Bin} from "../Bin";
 import {StrampProblem} from "../StrampProblem";
 import {BufferIndex} from "../BufferIndex";
-import {StructSymbol} from "../Stramp";
+import {SortedMap} from "../Utils";
 
 export class StructBin<T> extends Bin<T> {
-    name: string;
     sample = null;
-    data: [string, Bin | null][];
+    data = new SortedMap<string, Bin | null>((a, b) => a.localeCompare(b));
 
-    constructor(self: object, name: string, raw: Record<string, Bin | null>) {
+    constructor(public name: string) {
         super();
-        this.name = name;
-        this.data = Object.entries(raw).sort((a, b) => a[0].localeCompare(b[0]));
-
-        for (const [name, bin] of this.data) {
-            if (!bin && (!self[name] || typeof self[name] !== "object" || !self[name].hasOwnProperty(StructSymbol))) {
-                throw new Error(
-                    `Class struct field @def ${name} was initialized, but no value with a @def was provided for "${name}" in ${this.name}.`
-                );
-            }
-        }
     };
 
     unsafeWrite(bind: BufferIndex, value: Readonly<T> | T): void {
@@ -52,8 +41,11 @@ export class StructBin<T> extends Bin<T> {
 
     findProblem(value: unknown, strict?: boolean): StrampProblem | void {
         for (const [name, bin] of this.data) {
+            if (!bin && (!value || typeof value !== "object" || !value.hasOwnProperty(name))) {
+                return this.makeProblem(`Expected an object with a "${String(name)}" property for field "${this.name}.${String(name)}".`);
+            }
             const problem = (bin ?? __def.Stramp.getStruct(value[name])).findProblem(value[name], strict);
-            if (problem) return problem.shifted(`${this.name}.${name}`, this);
+            if (problem) return problem.shifted(`${this.name}.${String(name)}`, this);
         }
     };
 

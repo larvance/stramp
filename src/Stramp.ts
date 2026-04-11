@@ -61,6 +61,11 @@ import {Big0, BinValues, ClassType} from "./Utils";
 import {StructBin} from "./misc/StructBin";
 import {TupleBinConstructor} from "./array/TupleBin";
 
+type clazzSym<T = object> = {
+    struct: StructBin<T>,
+    resolvedParent: boolean
+};
+
 class Stramp extends Bin {
     name = "any";
     sample = null;
@@ -283,23 +288,29 @@ class Stramp extends Bin {
     };
 
     getStruct<T extends object>(self: T, sym = StructSymbol, clazz = self.constructor) {
-        if (!clazz.hasOwnProperty(sym)) return new StructBin<T>(self, clazz.name, {});
+        if (!clazz.hasOwnProperty(sym)) {
+            const data = clazz[sym] = {
+                struct: new StructBin<T>(clazz.name),
+                resolvedParent: false
+            };
+            return data.struct;
+        }
 
-        const data = clazz[sym];
+        const data: clazzSym<T> = clazz[sym];
 
-        if (data instanceof StructBin) return <StructBin<T>>data;
-        if (isLegacyDecorator) {
+        if (isLegacyDecorator && !data.resolvedParent) {
+            data.resolvedParent = true;
             // Because it's legacy it won't retrieve the parent classes' defs.
             const parent = Object.getPrototypeOf(clazz);
             if (typeof parent === "function" && parent.hasOwnProperty(sym)) {
                 const parentStruct = this.getStruct(self, sym, parent);
                 for (const [name, bin] of parentStruct.data) {
-                    if (!data.hasOwnProperty(name)) data[name] = bin;
+                    if (!data.hasOwnProperty(name)) data.struct.data.set(name, bin);
                 }
             }
         }
 
-        return clazz[sym] = new StructBin<T>(self, clazz.name, <Record<string, Bin>>data);
+        return data.struct;
     };
 
     pinClassToBin<T>(constructor: ClassType<T>, bin: Bin<T>) {
@@ -344,79 +355,108 @@ export const tuple = stramp.tuple;
 export const StructSymbol = Symbol("StructSymbol");
 let isLegacyDecorator = false;
 
-function structSetter(clazz: object, key: string | symbol, val: object | null, sym: symbol) {
-    if (val !== null && !(val instanceof Bin)) {
-        throw new Error(`@def can only be used with instances of Bin, got ${typeof val} for key ${key.toString()}`);
-    }
-    (clazz.hasOwnProperty(sym) ? clazz[sym] : (clazz[sym] = {}))[key] = val;
+type FieldDecoratorContext = {
+    kind: "field";
+    name: string | symbol;
+    addInitializer(init: Function): void;
+};
+
+function isFieldDecoratorContext(value: unknown): value is FieldDecoratorContext {
+    return (
+        typeof value === "object"
+        && value !== null
+        && "kind" in value
+        && value.kind === "field"
+        && "name" in value
+        && "addInitializer" in value
+        && typeof value.addInitializer === "function"
+    );
 }
 
-function applyStructSetter(clazz: object, key: string | symbol, val: object | null, symbols: symbol[]) {
-    const symbolsToUse = symbols.length > 0 ? symbols : [StructSymbol];
-    for (let i = 0; i < symbolsToUse.length; i++) {
-        structSetter(clazz, key, val, symbolsToUse[i]);
+function isLegacyDecoratorCall(target: unknown, key: unknown): key is string | symbol {
+    return (
+        (typeof target === "object" || typeof target === "function")
+        && target !== null
+        && !(target instanceof Bin)
+        && (typeof key === "string" || typeof key === "symbol")
+    );
+}
+
+export function defManual(clazz: Function, key: string | symbol, bin: Bin | null = null, ...symbols: symbol[]) {
+    if (typeof key === "symbol") {
+        throw new Error("@def cannot be used with symbol property keys because their ordering cannot be made schema-stable.");
+    }
+    symbols = symbols.length > 0 ? symbols : [StructSymbol];
+    for (const sym of symbols) {
+        if (bin !== null && !(bin instanceof Bin)) {
+            throw new Error(`@def can only be used with instances of Bin, got ${typeof bin} for key ${key.toString()}`);
+        }
+        const data: clazzSym = (clazz.hasOwnProperty(sym) ? clazz[sym] : (clazz[sym] = {
+            struct: new StructBin(clazz.name),
+            resolvedParent: false
+        }));
+        data.struct.data.set(key, bin);
     }
 }
 
 export function def(desc: Bin, ...symbols: symbol[]): (_: unknown, context: unknown) => void;
 export function def(...symbols: symbol[]): (_: unknown, context: unknown) => void;
-export function def(desc: object, context: {
-    kind: "field";
-    name: string | symbol;
-    addInitializer(init: Function): void;
-}): void;
+export function def(desc: object, context: FieldDecoratorContext): void;
 export function def(descOrSymbol?: object | symbol, contextOrSymbol?: unknown, ...restSymbols: symbol[]) {
-    if (typeof contextOrSymbol === "string" || typeof contextOrSymbol === "symbol") {
-        isLegacyDecorator = true;
-        applyStructSetter(descOrSymbol.constructor, contextOrSymbol, null, []);
+    if (isFieldDecoratorContext(contextOrSymbol)) {
+        contextOrSymbol.addInitializer(function (this: { constructor: Function }) {
+            defManual(this.constructor, contextOrSymbol.name);
+        });
         return;
     }
 
-    if (
-        typeof contextOrSymbol === "object"
-        && contextOrSymbol !== null
-        && "kind" in contextOrSymbol
-        && contextOrSymbol.kind === "field"
-        && "name" in contextOrSymbol
-        && contextOrSymbol.name
-        && "addInitializer" in contextOrSymbol
-        && typeof contextOrSymbol.addInitializer === "function"
-    ) {
-        return contextOrSymbol.addInitializer(function () {
-            applyStructSetter(this.constructor, <string>contextOrSymbol.name, null, []);
-        });
+    if (isLegacyDecoratorCall(descOrSymbol, contextOrSymbol)) {
+        isLegacyDecorator = true;
+        defManual(descOrSymbol.constructor, contextOrSymbol);
+        return;
     }
 
-    let desc: object | null = null;
+    let desc: Bin | null = null;
     let symbols: symbol[] = [];
 
     if (descOrSymbol === undefined) {
-        symbols = [];
+        if (contextOrSymbol !== undefined || restSymbols.length > 0) {
+            throw new Error("@def must be used with a Bin instance and/or symbols when used with classes.");
+        }
     } else if (descOrSymbol instanceof Bin) {
         desc = descOrSymbol;
-        symbols = [
-            ...(typeof contextOrSymbol === "symbol" ? [contextOrSymbol] : []),
-            ...restSymbols
-        ];
+        if (contextOrSymbol !== undefined && typeof contextOrSymbol !== "symbol") {
+            throw new Error("@def symbol arguments must be symbols.");
+        }
+        symbols = typeof contextOrSymbol === "symbol" ? [contextOrSymbol, ...restSymbols] : [...restSymbols];
     } else if (typeof descOrSymbol === "symbol") {
-        symbols = [descOrSymbol];
-        if (typeof contextOrSymbol === "symbol") symbols.push(contextOrSymbol);
-        symbols.push(...restSymbols);
+        if (contextOrSymbol !== undefined && typeof contextOrSymbol !== "symbol") {
+            throw new Error("@def symbol arguments must be symbols.");
+        }
+        symbols = typeof contextOrSymbol === "symbol"
+            ? [descOrSymbol, contextOrSymbol, ...restSymbols]
+            : [descOrSymbol, ...restSymbols];
     } else {
         throw new Error("@def must be used with a Bin instance and/or symbols when used with classes.");
     }
 
-    return function (slf: unknown, ctx: {
-        name: string | symbol;
-        addInitializer(init: Function): void;
-    } | string): void {
+    return function (slf: { constructor: Function }, ctx: FieldDecoratorContext | string | symbol): void {
         if (typeof ctx === "string" || typeof ctx === "symbol") {
             isLegacyDecorator = true;
-            applyStructSetter(slf.constructor, ctx, desc, symbols);
+            if (typeof ctx === "symbol") {
+                throw new Error("@def cannot be used with symbol property keys because their ordering cannot be made schema-stable.");
+            }
+            defManual(slf.constructor, ctx, desc, ...symbols);
             return;
         }
-        ctx.addInitializer(function () {
-            applyStructSetter(this.constructor, ctx.name, desc, symbols);
+        if (!isFieldDecoratorContext(ctx)) {
+            throw new Error("@def received unsupported decorator context.");
+        }
+        ctx.addInitializer(function (this: { constructor: Function }) {
+            if (typeof ctx.name === "symbol") {
+                throw new Error("@def cannot be used with symbol keys when used with class fields.");
+            }
+            defManual(this.constructor, ctx.name, desc, ...symbols);
         });
     };
 }

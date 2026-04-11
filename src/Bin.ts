@@ -159,7 +159,7 @@ export const __def = <{
 
 export abstract class Bin<T = unknown> {
     internalId = _id++;
-    __TYPE__: T;
+    declare __TYPE__: T;
     unsafeBuffers = false;
 
     abstract name: string;
