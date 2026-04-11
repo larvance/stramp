@@ -7,18 +7,37 @@ export class StructBin<T> extends Bin<T> {
     sample = null;
     data = new SortedMap<string, Bin | null>((a, b) => a.localeCompare(b));
 
-    constructor(public name: string) {
+    constructor(public name: string, public lengthBin: Bin<number> = null, public keyBin: Bin<string> = null) {
         super();
     };
 
+    withKey(lengthBin: Bin<number>, keyBin: Bin<string>) {
+        const bin = new StructBin(this.name, lengthBin, keyBin);
+        bin.data = this.data.copy();
+        return bin;
+    };
+
     unsafeWrite(bind: BufferIndex, value: Readonly<T> | T): void {
+        if (this.lengthBin) this.lengthBin.unsafeWrite(bind, this.data.size);
         for (const [name, bin] of this.data) {
+            this.keyBin?.unsafeWrite(bind, value[name]);
             (bin ?? __def.Stramp.getStruct(value[name])).unsafeWrite(bind, value[name]);
         }
     };
 
     read(bind: BufferIndex, base: T): T {
         if (!base) throw this.makeProblem("Expected a base when reading.");
+
+        if (this.lengthBin) {
+            const length = this.lengthBin.read(bind);
+            for (let i = 0; i < length; i++) {
+                const name = this.keyBin.read(bind);
+                if (this.data.has(name)) {
+                    base[name] = (this.data.get(name) ?? __def.Stramp.getStruct(base[name])).read(bind, base[name]);
+                }
+            }
+            return base;
+        }
 
         for (const [name, bin] of this.data) {
             if (bin === null) {
@@ -33,7 +52,9 @@ export class StructBin<T> extends Bin<T> {
 
     unsafeSize(value: Readonly<T> | T): number {
         let size = 0;
+        if (this.lengthBin) size += this.lengthBin.unsafeSize(this.data.size);
         for (const [name, bin] of this.data) {
+            if (this.keyBin) size += this.keyBin.unsafeSize(value[name]);
             size += (bin ?? __def.Stramp.getStruct(value[name])).unsafeSize(value[name]);
         }
         return size;
@@ -42,10 +63,12 @@ export class StructBin<T> extends Bin<T> {
     findProblem(value: unknown, strict?: boolean): StrampProblem | void {
         for (const [name, bin] of this.data) {
             if (!bin && (!value || typeof value !== "object" || !value.hasOwnProperty(name))) {
-                return this.makeProblem(`Expected an object with a "${String(name)}" property for field "${this.name}.${String(name)}".`);
+                return this.makeProblem(`Expected an object with a "${name}" property for field "${this.name}.${name}".`);
             }
-            const problem = (bin ?? __def.Stramp.getStruct(value[name])).findProblem(value[name], strict);
-            if (problem) return problem.shifted(`${this.name}.${String(name)}`, this);
+            let problem = this.keyBin ? this.keyBin.findProblem(value[name], strict) : null;
+            if (problem) return problem.shifted(`${this.name}.${name}`, this);
+            problem = (bin ?? __def.Stramp.getStruct(value[name])).findProblem(value[name], strict);
+            if (problem) return problem.shifted(`${this.name}.${name}`, this);
         }
     };
 

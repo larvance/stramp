@@ -113,6 +113,41 @@ export class SortedMap<K, V> {
             yield [this._keys[i], this._vals[i]];
         }
     };
+
+    concat(other: SortedMap<K, V>) {
+        const result = new SortedMap<K, V>(this.compare);
+        let i = 0, j = 0;
+        while (i < this._keys.length && j < other._keys.length) {
+            const cmp = this.compare(this._keys[i], other._keys[j]);
+            if (cmp === 0) {
+                result.set(this._keys[i], other._vals[j]);
+                i++;
+                j++;
+            } else if (cmp < 0) {
+                result.set(this._keys[i], this._vals[i]);
+                i++;
+            } else {
+                result.set(other._keys[j], other._vals[j]);
+                j++;
+            }
+        }
+        while (i < this._keys.length) {
+            result.set(this._keys[i], this._vals[i]);
+            i++;
+        }
+        while (j < other._keys.length) {
+            result.set(other._keys[j], other._vals[j]);
+            j++;
+        }
+        return result;
+    };
+
+    copy() {
+        const result = new SortedMap<K, V>(this.compare);
+        result._keys = this._keys.slice();
+        result._vals = this._vals.slice();
+        return result;
+    };
 }
 
 function defaultCompare<K>(a: K, b: K): number {
