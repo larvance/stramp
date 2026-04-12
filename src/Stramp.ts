@@ -290,7 +290,7 @@ class Stramp extends Bin {
     getStruct<T extends object>(self: T, sym = StructSymbol, clazz = self.constructor) {
         if (!clazz.hasOwnProperty(sym)) {
             const data = clazz[sym] = {
-                struct: new StructBin<T>(clazz.name),
+                struct: new StructBin<T>(clazz),
                 resolvedParent: false
             };
             return data.struct;
@@ -392,7 +392,7 @@ export function defManual(clazz: Function, key: string | symbol, bin: Bin | null
             throw new Error(`@def can only be used with instances of Bin, got ${typeof bin} for key ${key.toString()}`);
         }
         const data: clazzSym = (clazz.hasOwnProperty(sym) ? clazz[sym] : (clazz[sym] = {
-            struct: new StructBin(clazz.name),
+            struct: new StructBin(clazz),
             resolvedParent: false
         }));
         data.struct.data.set(key, bin);

@@ -6,13 +6,15 @@ import {SortedMap} from "../Utils";
 export class StructBin<T> extends Bin<T> {
     sample = null;
     data = new SortedMap<string, Bin | null>((a, b) => a.localeCompare(b));
+    name: string;
 
-    constructor(public name: string, public lengthBin: Bin<number> = null, public keyBin: Bin<string> = null) {
+    constructor(public clazz: Function, public lengthBin: Bin<number> = null, public keyBin: Bin<string> = null) {
         super();
+        this.name = this.clazz.name;
     };
 
     withKey(lengthBin: Bin<number>, keyBin: Bin<string>) {
-        const bin = new StructBin(this.name, lengthBin, keyBin);
+        const bin = new StructBin(this.clazz, lengthBin, keyBin);
         bin.data = this.data.copy();
         return bin;
     };
@@ -61,9 +63,11 @@ export class StructBin<T> extends Bin<T> {
     };
 
     findProblem(value: unknown, strict?: boolean): StrampProblem | void {
+        if (typeof value !== "object" || value === null) return this.makeProblem("Expected an object");
+        if (strict && !(value instanceof this.clazz)) return this.makeProblem(`Expected an instance of ${this.clazz.name}`);
         for (const [name, bin] of this.data) {
             if (!bin && (!value || typeof value !== "object" || !value.hasOwnProperty(name))) {
-                return this.makeProblem(`Expected an object with a "${name}" property for field "${this.name}.${name}".`);
+                return this.makeProblem(`Expected an object with a "${name}" property for field "${this.name}.${name}"`);
             }
             let problem = this.keyBin ? this.keyBin.findProblem(value[name], strict) : null;
             if (problem) return problem.shifted(`${this.name}.${name}`, this);
