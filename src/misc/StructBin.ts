@@ -22,7 +22,7 @@ export class StructBin<T> extends Bin<T> {
     unsafeWrite(bind: BufferIndex, value: Readonly<T> | T): void {
         if (this.lengthBin) this.lengthBin.unsafeWrite(bind, this.data.size);
         for (const [name, bin] of this.data) {
-            this.keyBin?.unsafeWrite(bind, value[name]);
+            this.keyBin?.unsafeWrite(bind, name);
             (bin ?? __def.Stramp.getStruct(value[name])).unsafeWrite(bind, value[name]);
         }
     };
@@ -56,7 +56,7 @@ export class StructBin<T> extends Bin<T> {
         let size = 0;
         if (this.lengthBin) size += this.lengthBin.unsafeSize(this.data.size);
         for (const [name, bin] of this.data) {
-            if (this.keyBin) size += this.keyBin.unsafeSize(value[name]);
+            if (this.keyBin) size += this.keyBin.unsafeSize(name);
             size += (bin ?? __def.Stramp.getStruct(value[name])).unsafeSize(value[name]);
         }
         return size;
@@ -69,7 +69,7 @@ export class StructBin<T> extends Bin<T> {
             if (!bin && (!value || typeof value !== "object" || !value.hasOwnProperty(name))) {
                 return this.makeProblem(`Expected an object with a "${name}" property for field "${this.name}.${name}"`);
             }
-            let problem = this.keyBin ? this.keyBin.findProblem(value[name], strict) : null;
+            let problem = this.keyBin ? this.keyBin.findProblem(name, strict) : null;
             if (problem) return problem.shifted(`${this.name}.${name}`, this);
             problem = (bin ?? __def.Stramp.getStruct(value[name])).findProblem(value[name], strict);
             if (problem) return problem.shifted(`${this.name}.${name}`, this);
