@@ -1,6 +1,5 @@
 import {Bin} from "../Bin";
 import {BufferIndex} from "../BufferIndex";
-import {OptionalBin} from "../OptionalBin";
 import {StrampProblem} from "../StrampProblem";
 
 export class HighwayBinConstructor<Input, Output> extends Bin<Output> {
