@@ -9,9 +9,10 @@ export class HighwayBinConstructor<Input, Output> extends Bin<Output> {
         public readFn: (obj: Input) => Output,
         public name = `Highway<${bin.name}>`,
         public sample = readFn(bin.sample),
-        public adaptor: (v: unknown) => Output = v => v as Output // "trust me bro"
+        public adaptor?: (v: unknown) => Output
     ) {
         super();
+        this.adaptor = adaptor || (v => v as Output);
     };
 
     unsafeWrite(bind: BufferIndex, value: Output) {
