@@ -288,13 +288,10 @@ class Stramp extends Bin {
     };
 
     getStruct<T extends object>(self: T, sym = StructSymbol, clazz = self.constructor) {
-        if (!clazz.hasOwnProperty(sym)) {
-            const data = clazz[sym] = {
-                struct: new StructBin<T>(clazz),
-                resolvedParent: false
-            };
-            return data.struct;
-        }
+        if (!clazz.hasOwnProperty(sym)) clazz[sym] = {
+            struct: new StructBin<T>(clazz),
+            resolvedParent: false
+        };
 
         const data: clazzSym<T> = clazz[sym];
 
